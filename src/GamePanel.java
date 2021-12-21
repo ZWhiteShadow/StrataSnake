@@ -14,7 +14,9 @@ public class GamePanel extends JPanel implements ActionListener {
     static final int GAME_UNITS = (SCREEN_WIDTH * SCREEN_HEIGHT) / UNIT_SIZE;
     final int x[] = new int[GAME_UNITS];
     final int y[] = new int[GAME_UNITS];
-    int speed = 200; //How fast game is running
+    int speed = 100; //How fast game is running
+    float scoreMultiplerFloat = 100.0f;
+    int scoreMultiplyerInt;
     int snegyBodyParts = 6;
     int applesEaten;
     int appleX;
@@ -41,9 +43,11 @@ public class GamePanel extends JPanel implements ActionListener {
     }
 
     public void newSpeed() {
-        timer.stop();
-        timer.setDelay( speed );
-        timer.start();
+//        if(running) {
+            timer.stop();
+            timer.setDelay(speed);
+            timer.start();
+//        }
     }
 
     public void paintComponent(Graphics g) {
@@ -56,10 +60,11 @@ public class GamePanel extends JPanel implements ActionListener {
             g.drawLine(i * UNIT_SIZE, 0, i * UNIT_SIZE, SCREEN_HEIGHT);
             g.drawLine(0, i * UNIT_SIZE, SCREEN_HEIGHT, i * UNIT_SIZE);
         }
-        // ((400 - speed) / 25) * 12.5
+        
+        scoreMultiplyerInt = (int) Math.round(scoreMultiplerFloat);
         g.setColor(Color.red);
         g.setFont(new Font("TimesRoman", Font.PLAIN, UNIT_SIZE * 2));
-        g.drawString(String.format("%d", ( ((400 - speed) / 10)) * 5 ), UNIT_SIZE , UNIT_SIZE * 2);
+        g.drawString(String.format("%d", scoreMultiplyerInt), UNIT_SIZE , UNIT_SIZE * 2);
         g.fillOval(appleX, appleY, UNIT_SIZE, UNIT_SIZE);
 
         for (int i = 0; i < snegyBodyParts; i++) {
@@ -181,19 +186,21 @@ public class GamePanel extends JPanel implements ActionListener {
                         direction = 'D';
                     }
                     break;
-                case KeyEvent.VK_ADD:
+                case KeyEvent.VK_ADD: //speed up
                     if (speed > 0) {
-                        speed -= 10;
+                        speed -= 5;
+                        newSpeed();
+                        scoreMultiplerFloat *= 1.13461; //score starts at 100 goes up to 1250
+                        System.out.println(speed);
                     }
-                    System.out.println(speed);
-                    newSpeed();
                     break;
-                case KeyEvent.VK_SUBTRACT:
-                    if (speed < 400) {
-                        speed += 10;
+                case KeyEvent.VK_SUBTRACT: //slow down
+                    if (speed < 215) {
+                        speed += 5;
+                        newSpeed();
+                        scoreMultiplerFloat /= 1.13461; //score stats at 100 goes down to 5
+                        System.out.println(speed);
                     }
-                    System.out.println(speed);
-                    newSpeed();
                     break;
             }
         }
