@@ -4,6 +4,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.text.DecimalFormat;
 import java.util.Random;
 
 public class GamePanel extends JPanel implements ActionListener {
@@ -12,13 +13,13 @@ public class GamePanel extends JPanel implements ActionListener {
     static final int SCREEN_HEIGHT = 600;
     static final int UNIT_SIZE = 25;
     static final int GAME_UNITS = (SCREEN_WIDTH * SCREEN_HEIGHT) / UNIT_SIZE;
-    final int x[] = new int[GAME_UNITS];
-    final int y[] = new int[GAME_UNITS];
+    final int[] x = new int[GAME_UNITS];
+    final int[] y = new int[GAME_UNITS];
     int speed = 100; //How fast game is running
-    float scoreMultiplerFloat = 100.0f;
-    int scoreMultiplyerInt;
+    float scoreMultiplierFloat = 100.0f;
+    int scoreMultiplierInt;
+    int score;
     int snegyBodyParts = 6;
-    int applesEaten;
     int appleX;
     int appleY;
     char direction = 'D';
@@ -43,11 +44,11 @@ public class GamePanel extends JPanel implements ActionListener {
     }
 
     public void newSpeed() {
-//        if(running) {
+        if(running) {
             timer.stop();
             timer.setDelay(speed);
             timer.start();
-//        }
+        }
     }
 
     public void paintComponent(Graphics g) {
@@ -60,11 +61,14 @@ public class GamePanel extends JPanel implements ActionListener {
             g.drawLine(i * UNIT_SIZE, 0, i * UNIT_SIZE, SCREEN_HEIGHT);
             g.drawLine(0, i * UNIT_SIZE, SCREEN_HEIGHT, i * UNIT_SIZE);
         }
-        
-        scoreMultiplyerInt = (int) Math.round(scoreMultiplerFloat);
-        g.setColor(Color.red);
+
+        scoreMultiplierInt = (int) scoreMultiplierFloat;
+        g.setColor(Color.green);
         g.setFont(new Font("TimesRoman", Font.PLAIN, UNIT_SIZE * 2));
-        g.drawString(String.format("%d", scoreMultiplyerInt), UNIT_SIZE , UNIT_SIZE * 2);
+        g.drawString(String.format("%d", scoreMultiplierInt), UNIT_SIZE , UNIT_SIZE * 2); //show score multiplier
+        DecimalFormat scoreWithCommas = new DecimalFormat("#,###");
+        g.drawString(scoreWithCommas.format(score), SCREEN_WIDTH / 2 , UNIT_SIZE * 2); //show score multiplier
+        g.setColor(Color.red);
         g.fillOval(appleX, appleY, UNIT_SIZE, UNIT_SIZE);
 
         for (int i = 0; i < snegyBodyParts; i++) {
@@ -97,22 +101,19 @@ public class GamePanel extends JPanel implements ActionListener {
             y[i] = y[i - 1];
         }
         switch (direction) {
-            case 'U': //Up
-                y[0] = y[0] - UNIT_SIZE;
-                break;
-            case 'D': //Down
-                y[0] = y[0] + UNIT_SIZE;
-                break;
-            case 'L':
-                x[0] = x[0] - UNIT_SIZE;
-                break;
-            case 'R':
-                x[0] = x[0] + UNIT_SIZE;
-                break;
+            case 'U' -> y[0] = y[0] - UNIT_SIZE;
+            case 'D' -> y[0] = y[0] + UNIT_SIZE;
+            case 'L' -> x[0] = x[0] - UNIT_SIZE;
+            case 'R' -> x[0] = x[0] + UNIT_SIZE;
         }
     }
 
     public void checkApple() {
+        if( ( x[0] == appleX ) && (y[0] == appleY) ) {
+            snegyBodyParts++;
+            score += scoreMultiplierInt;
+            newApple();
+        }
     }
 
     public void checkCollisions() {
@@ -133,7 +134,7 @@ public class GamePanel extends JPanel implements ActionListener {
                 running = false;
             }
             //check if head touches bottom border
-            if (y[0] > SCREEN_WIDTH) {
+            if (y[0] > SCREEN_HEIGHT) {
                 running = false;
             }
             if (!running) {
@@ -190,7 +191,7 @@ public class GamePanel extends JPanel implements ActionListener {
                     if (speed > 0) {
                         speed -= 5;
                         newSpeed();
-                        scoreMultiplerFloat *= 1.13461; //score starts at 100 goes up to 1250
+                        scoreMultiplierFloat *= 1.13461; //score starts at 100 goes up to 1250
                         System.out.println(speed);
                     }
                     break;
@@ -198,7 +199,7 @@ public class GamePanel extends JPanel implements ActionListener {
                     if (speed < 215) {
                         speed += 5;
                         newSpeed();
-                        scoreMultiplerFloat /= 1.13461; //score stats at 100 goes down to 5
+                        scoreMultiplierFloat /= 1.13461; //score stats at 100 goes down to 5
                         System.out.println(speed);
                     }
                     break;
