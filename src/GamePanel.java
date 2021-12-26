@@ -21,7 +21,7 @@ public class GamePanel extends JPanel implements ActionListener {
     int[] x;
     int[] y;
     int[][] sneggySphere;
-    int speed; //How fast game is running
+    double speed; //How fast game is running
     float scoreMultiplierFloat;
     int scoreMultiplierInt;
     int score;
@@ -57,14 +57,14 @@ public class GamePanel extends JPanel implements ActionListener {
         level = 1;
         numbersLeft = level;
         newLevel(numbersLeft);
-        timer = new Timer(speed, this);
+        timer = new Timer((int) speed, this);
         timer.start();
     }
 
     public void newSpeed() {
         if (running) {
             timer.stop();
-            timer.setDelay(speed);
+            timer.setDelay((int) speed);
             timer.start();
         }
     }
@@ -127,10 +127,10 @@ public class GamePanel extends JPanel implements ActionListener {
             for (int i = 0; i < sneggyBodyParts; i++) {
                 if (i == 0) {
                     g.setColor(Color.green);
-                    g.fillRect(x[i] * UNIT_SIZE, y[i] * UNIT_SIZE, UNIT_SIZE, UNIT_SIZE);
+                    g.fillOval(x[i] * UNIT_SIZE, y[i] * UNIT_SIZE, UNIT_SIZE, UNIT_SIZE);
                 } else {
                     g.setColor(new Color(45, 180, 0));
-                    g.fillRect(x[i] * UNIT_SIZE, y[i] * UNIT_SIZE, UNIT_SIZE, UNIT_SIZE);
+                    g.fillOval(x[i] * UNIT_SIZE, y[i] * UNIT_SIZE, UNIT_SIZE, UNIT_SIZE);
                 }
             }
         }
@@ -156,10 +156,18 @@ public class GamePanel extends JPanel implements ActionListener {
 
         scoreMultiplierInt = (int) scoreMultiplierFloat;
         displayLevel = level + ((level - numbersLeft) / level);
+        int displaySpeed;
+        try {
+            Integer.parseInt(String.valueOf(direction)); //Is direction diagnol
+             displaySpeed = (int)((100 - speed) / 5) + 20;
+        }catch(Exception e){
+             displaySpeed = (int)((100 - speed) / 5) ;
+        }
+
         //Speed / Per Unit /  Score
         g.setColor(Color.green);
         g.drawString("Level: " + decimal.format(displayLevel) + "    " +
-                "Speed: " + (100 - speed) / 5 +
+                "Speed: " +  displaySpeed +
                 "   Per Unit: " + withCommas.format(scoreMultiplierInt) +
                 "   Score: " + withCommas.format(score), SCREEN_WIDTH / 3, SCREEN_HEIGHT
                 + (BOTTOM_PANEL / 2) + 15);
@@ -210,7 +218,7 @@ public class GamePanel extends JPanel implements ActionListener {
         int tempDown;
         if (numberHit == 1) {
             numbersLeft -= 1;
-            if (numbersLeft == 0 ) {
+            if (numbersLeft == 0) {
                 level += 1;
                 numbersLeft = level;
                 Arrays.stream(sneggySphere).forEach(a -> Arrays.fill(a, 0));
@@ -250,7 +258,7 @@ public class GamePanel extends JPanel implements ActionListener {
     }
 
     public void move() {
-        sneggyBodyParts = 2 + (score / 1000);
+        sneggyBodyParts = 10 + (score / 1000);
         for (int i = sneggyBodyParts - 1; i > 0; i--) {
             x[i] = x[i - 1];
             y[i] = y[i - 1];
@@ -260,6 +268,24 @@ public class GamePanel extends JPanel implements ActionListener {
             case 'D' -> y[0] = y[0] + 1;
             case 'L' -> x[0] = x[0] - 1;
             case 'R' -> x[0] = x[0] + 1;
+
+            case '7' -> {  // UP Left
+                y[0] = y[0] - 1;
+                x[0] = x[0] - 1;
+            }
+            case '1' -> {  // Down Left
+                y[0] = y[0] + 1;
+                x[0] = x[0] - 1;
+            }
+            case '9' -> {  // Up Right
+                y[0] = y[0] - 1;
+                x[0] = x[0] + 1;
+            }
+            case '3' -> {  // Down Right
+                y[0] = y[0] + 1;
+                x[0] = x[0] + 1;
+            }
+
         }
         try {
             if (sneggySphere[x[0]][y[0]] != 0) {
@@ -306,27 +332,34 @@ public class GamePanel extends JPanel implements ActionListener {
         @Override
 
         public void keyPressed(KeyEvent e) {
-
             switch (e.getKeyCode()) {
                 case KeyEvent.VK_LEFT:
+                case KeyEvent.VK_NUMPAD4:
+                    testIfDiagnol(false);
                     if (direction != 'R') {
                         direction = 'L';
                     }
                     break;
 
                 case KeyEvent.VK_RIGHT:
+                case KeyEvent.VK_NUMPAD6:
+                    testIfDiagnol(false);
                     if (direction != 'L') {
                         direction = 'R';
                     }
                     break;
 
                 case KeyEvent.VK_UP:
+                case KeyEvent.VK_NUMPAD8:
+                    testIfDiagnol(false);
                     if (direction != 'D') {
                         direction = 'U';
                     }
                     break;
 
                 case KeyEvent.VK_DOWN:
+                case KeyEvent.VK_NUMPAD2:
+                    testIfDiagnol(false);
                     if (direction != 'U') {
                         direction = 'D';
                     }
@@ -345,11 +378,11 @@ public class GamePanel extends JPanel implements ActionListener {
                         scoreMultiplierFloat /= 1.106f; //score stats at 100 goes down to 13
                     }
                     break;
-                case KeyEvent.VK_SPACE: //pause game
+                case KeyEvent.VK_SPACE: //start new game
                     timer.stop();
                     startGame();
                     break;
-                case KeyEvent.VK_ENTER: { //start new game
+                case KeyEvent.VK_ENTER: //pause game
                     if (timer.isRunning()) {
                         speed = 100;
                         newSpeed();
@@ -357,13 +390,48 @@ public class GamePanel extends JPanel implements ActionListener {
                     } else {
                         timer.start();
                     }
-                }
-                break;
+                    break;
+
+                //Diagonals!
+                case KeyEvent.VK_NUMPAD7:
+                case KeyEvent.VK_HOME:
+                    testIfDiagnol(true);
+                    direction = '7';
+                    break;
+
+                case KeyEvent.VK_NUMPAD9:
+                case KeyEvent.VK_PAGE_UP:
+                    testIfDiagnol(true);
+                    direction = '9';
+                    break;
+
+                case KeyEvent.VK_NUMPAD1:
+                case KeyEvent.VK_END:
+                    testIfDiagnol(true);
+                    direction = '1';
+                    break;
+
+                case KeyEvent.VK_NUMPAD3:
+                case KeyEvent.VK_PAGE_DOWN:
+                    testIfDiagnol(true);
+                    direction = '3';
+                    break;
             }
         }
     }
+
+    public void testIfDiagnol(Boolean isDiagonal) {
+       try {
+           Integer.parseInt(String.valueOf(direction));
+           if (!isDiagonal){
+               speed /= 2;
+           }
+        }catch(Exception ex){
+           if (isDiagonal){
+               speed *= 2;
+           }
+        }
+    }
 }
-
-
 
 
