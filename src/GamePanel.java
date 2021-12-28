@@ -7,6 +7,7 @@ import java.awt.event.KeyEvent;
 import java.text.DecimalFormat;
 import java.util.Arrays;
 import java.util.Random;
+import java.util.concurrent.TimeUnit;
 
 public class GamePanel extends JPanel implements ActionListener {
 
@@ -33,6 +34,7 @@ public class GamePanel extends JPanel implements ActionListener {
     boolean running;
     Timer timer;
     Random random;
+    boolean step = false;
 
     GamePanel() {
         random = new Random();
@@ -71,7 +73,6 @@ public class GamePanel extends JPanel implements ActionListener {
 
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
-        setBackground(g);
         drawNumbers(g);
         drawSneggy(g);
         if (!running || score <= -2000) {
@@ -82,7 +83,7 @@ public class GamePanel extends JPanel implements ActionListener {
         drawHighScore(g);
         drawBottomPanel(g);
     }
-    
+
     public void drawGrid(Graphics g) {
 
         g.setColor(Color.darkGray);
@@ -196,6 +197,9 @@ public class GamePanel extends JPanel implements ActionListener {
     }
 
     public void newNumbers(int numberHit) {
+        if (numberHit == 100 || numberHit == -100){
+            return;
+        }
         int tempAcross;
         int tempDown;
         if (numberHit == 1) {
@@ -213,8 +217,8 @@ public class GamePanel extends JPanel implements ActionListener {
                 do {
                     tempAcross = random.nextInt(SQUARES_ACROSS);
                     tempDown = random.nextInt(SQUARES_DOWN);
-                } while ((numberHit > 0 && sneggySphere[tempAcross][tempDown] < 0) ||
-                        (numberHit < 0 && sneggySphere[tempAcross][tempDown] > 0));
+                } while  ( (numberHit > 0 && sneggySphere[tempAcross][tempDown] < 0) ||
+                        (numberHit < 0 && sneggySphere[tempAcross][tempDown] > 0) );
                 if (numberHit > 0) {
                     sneggySphere[tempAcross][tempDown] += (int) Math.sqrt(tempNumberToDisplay);
                     tempNumberToDisplay -= (int) Math.sqrt(tempNumberToDisplay);
@@ -257,22 +261,41 @@ public class GamePanel extends JPanel implements ActionListener {
             case 'R' -> x[0] = x[0] + 1;
 
             case '7' -> {  // UP Left
-                y[0] = y[0] - 1;
-                x[0] = x[0] - 1;
+                if (step == false) {
+                    y[0] = y[0] - 1;
+                    step = true;
+                }else {
+                    x[0] = x[0] - 1;
+                    step = false;
+                }
             }
-            case '1' -> {  // Down Left
-                y[0] = y[0] + 1;
-                x[0] = x[0] - 1;
+            case '1' -> {  // UP Left
+                if (step == false) {
+                    y[0] = y[0] + 1;
+                    step = true;
+                }else {
+                    x[0] = x[0] - 1;
+                    step = false;
+                }
             }
-            case '9' -> {  // Up Right
-                y[0] = y[0] - 1;
-                x[0] = x[0] + 1;
+            case '9' -> {  // UP Left
+                if (step == false) {
+                    y[0] = y[0] - 1;
+                    step = true;
+                }else {
+                    x[0] = x[0] + 1;
+                    step = false;
+                }
             }
-            case '3' -> {  // Down Right
-                y[0] = y[0] + 1;
-                x[0] = x[0] + 1;
+            case '3' -> {  // UP Left
+                if (step == false) {
+                    y[0] = y[0] + 1;
+                    step = true;
+                }else {
+                    x[0] = x[0] + 1;
+                    step = false;
+                }
             }
-
         }
         try {
             if (sneggySphere[x[0]][y[0]] != 0) {
