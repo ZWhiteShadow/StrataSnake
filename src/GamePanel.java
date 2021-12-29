@@ -7,7 +7,6 @@ import java.awt.event.KeyEvent;
 import java.text.DecimalFormat;
 import java.util.Arrays;
 import java.util.Random;
-import java.util.concurrent.TimeUnit;
 
 public class GamePanel extends JPanel implements ActionListener {
     static final int SCREEN_WIDTH = 1200;
@@ -102,13 +101,19 @@ public class GamePanel extends JPanel implements ActionListener {
             for (int j = 0; j < SQUARES_DOWN; j++) {
                 if (sneggySphere[i][j] > 0) {
                     g.setColor(Color.green);
-                    if (sneggySphere[i][j] > 9 && sneggySphere[i][j] != 100) {
+                    if (sneggySphere[i][j] > 9 && sneggySphere[i][j] < 100) {
                         g.drawString(String.valueOf(sneggySphere[i][j]), (i * UNIT_SIZE) + 3, (j * UNIT_SIZE) + UNIT_SIZE - 7);
                     } else if (sneggySphere[i][j] < 10) {
                         g.drawString(String.valueOf(sneggySphere[i][j]), (i * UNIT_SIZE) + 8, (j * UNIT_SIZE) + UNIT_SIZE - 7);
                     } else if (sneggySphere[i][j] == 100){
-                        g.setColor(Color.green);
+                        g.setColor(Color.green.darker());
                         g.fillOval(i * UNIT_SIZE, j * UNIT_SIZE, UNIT_SIZE, UNIT_SIZE);
+                        g.setColor(Color.black);
+                        g.setFont(new Font("Terminal", Font.PLAIN, 36));
+                        g.drawString("+", (i * UNIT_SIZE) + 2 , (j * UNIT_SIZE) + UNIT_SIZE);
+                    } else if (sneggySphere[i][j] == 200){
+                        g.setColor(Color.green.darker());
+                        g.fillRect(i * UNIT_SIZE, j * UNIT_SIZE, UNIT_SIZE, UNIT_SIZE);
                         g.setColor(Color.black);
                         g.setFont(new Font("Terminal", Font.PLAIN, 36));
                         g.drawString("+", (i * UNIT_SIZE) + 2 , (j * UNIT_SIZE) + UNIT_SIZE);
@@ -117,7 +122,7 @@ public class GamePanel extends JPanel implements ActionListener {
                 g.setFont(new Font("Terminal", Font.PLAIN, 16));
                 if (sneggySphere[i][j] < 0) {
                     g.setColor(Color.red);
-                    if (sneggySphere[i][j] < -9 && sneggySphere[i][j] != -100) {
+                    if (sneggySphere[i][j] < -9 && sneggySphere[i][j] > -100) {
                         g.drawString(String.valueOf(sneggySphere[i][j] * -1), (i * UNIT_SIZE) + 3, (j * UNIT_SIZE) + UNIT_SIZE - 7);
                     } else if (sneggySphere[i][j] > -10){
                         g.drawString(String.valueOf(sneggySphere[i][j] * -1), (i * UNIT_SIZE) + 8, (j * UNIT_SIZE) + UNIT_SIZE - 7);
@@ -127,6 +132,12 @@ public class GamePanel extends JPanel implements ActionListener {
                         g.setColor(Color.black);
                         g.setFont(new Font("Terminal", Font.PLAIN, 36));
                         g.drawString("-", (i * UNIT_SIZE) + 7, (j * UNIT_SIZE) + UNIT_SIZE - 3);
+                    }  else if (sneggySphere[i][j] == -200){
+                        g.setColor(Color.red);
+                        g.fillRect(i * UNIT_SIZE, j * UNIT_SIZE, UNIT_SIZE, UNIT_SIZE);
+                        g.setColor(Color.black);
+                        g.setFont(new Font("Terminal", Font.PLAIN, 36));
+                        g.drawString("-", (i * UNIT_SIZE) + 7 , (j * UNIT_SIZE) + UNIT_SIZE - 3);
                     }
                 }
             }
@@ -171,19 +182,22 @@ public class GamePanel extends JPanel implements ActionListener {
         int displaySpeed;
         try {
             Integer.parseInt(String.valueOf(direction)); //Is direction diagnol
-            displaySpeed = (int) ((100 - (sneggySpeed / 2)) / 5);
+            displaySpeed = (int) ((100 - (sneggySpeed / 2)) / 5) + 10;
         } catch (Exception e) {
-            displaySpeed = (int) ((100 - sneggySpeed) / 5);
+            displaySpeed = (int) ((100 - sneggySpeed) / 5) + 10;
         }
 
         //sneggySpeed / Per Unit /  Score
         g.setFont(new Font("Terminal", Font.PLAIN, 30));
         g.setColor(Color.green);
-        g.drawString("Level: " + decimal.format(displayLevel) + "    " +
-                "Speed: " + displaySpeed +
+        g.drawString("Level: " + decimal.format(displayLevel) +
+                "   Speed: " + displaySpeed +
+                "   Length: " + sneggyBodyParts +
                 "   Per Unit: " + withCommas.format(scoreMultiplierInt) +
                 "   Score: " + withCommas.format(score), SCREEN_WIDTH / 3, SCREEN_HEIGHT
                 + (BOTTOM_PANEL / 2) + 10);
+        g.setFont(new Font("Terminal", Font.PLAIN, 30));
+        g.setColor(Color.green);
     }
 
     //set side for high score table
@@ -203,21 +217,16 @@ public class GamePanel extends JPanel implements ActionListener {
             tempAcross = random.nextInt(SQUARES_ACROSS);
             tempDown = random.nextInt(SQUARES_DOWN);
         } while ( (sneggySphere[tempAcross][tempDown] < 0 ) && (x[0] != tempAcross) && (y[0] != tempDown)
-                && sneggySphere[tempAcross][tempDown] == -100 && sneggySphere[tempAcross][tempDown] == 100);
+                && sneggySphere[tempAcross][tempDown] <= -100 && sneggySphere[tempAcross][tempDown] >= 100);
         sneggySphere[tempAcross][tempDown] += numberToDisplay;
-        do {
-            tempAcross = random.nextInt(SQUARES_ACROSS);
-            tempDown = random.nextInt(SQUARES_DOWN);
-        } while ( (sneggySphere[tempAcross][tempDown] != 0 ) && (x[0] != tempAcross) && (y[0] != tempDown)
-                && sneggySphere[tempAcross][tempDown] == -100 && sneggySphere[tempAcross][tempDown] == 100);
-        sneggySphere[tempAcross][tempDown] += 100;
-
-        do {
-            tempAcross = random.nextInt(SQUARES_ACROSS);
-            tempDown = random.nextInt(SQUARES_DOWN);
-        } while ( (sneggySphere[tempAcross][tempDown] != 0 ) && (x[0] != tempAcross) && (y[0] != tempDown)
-                && sneggySphere[tempAcross][tempDown] == -100 && sneggySphere[tempAcross][tempDown] == 100);
-        sneggySphere[tempAcross][tempDown] -= 100;
+        for (int i = -2; i < 3; i++) {
+            do {
+                tempAcross = random.nextInt(SQUARES_ACROSS);
+                tempDown = random.nextInt(SQUARES_DOWN);
+            } while ((sneggySphere[tempAcross][tempDown] != 0) && (x[0] != tempAcross) && (y[0] != tempDown)
+                    && sneggySphere[tempAcross][tempDown] <= -100 && sneggySphere[tempAcross][tempDown] >= 100);
+            sneggySphere[tempAcross][tempDown] += (i * 100);
+        }
     }
 
     public void newNumbers(int numberHit) {
@@ -226,7 +235,6 @@ public class GamePanel extends JPanel implements ActionListener {
                 sneggySpeed -= 5;
                 newSpeed();
                 scoreMultiplierFloat *= 1.106f; //score starts at 100 goes up to 750
-                sneggyBodyParts--;
                 return;
             }
         }
@@ -235,9 +243,18 @@ public class GamePanel extends JPanel implements ActionListener {
                 sneggySpeed += 5;
                 newSpeed();
                 scoreMultiplierFloat /= 1.106f; //score stats at 100 goes down to 13
-                sneggyBodyParts++;
                 return;
             }
+        }
+        if (numberHit == 200){ // slow down
+            sneggyBodyParts++;
+            scoreMultiplierFloat *= 1.053f;
+                return;
+        }
+        if (numberHit == -200){ // slow down
+            scoreMultiplierFloat /= 1.053f;
+            sneggyBodyParts--;
+            return;
         }
         score += (scoreMultiplierInt * sneggySphere[x[0]][y[0]]);
 
@@ -260,7 +277,7 @@ public class GamePanel extends JPanel implements ActionListener {
                     tempDown = random.nextInt(SQUARES_DOWN);
                 } while  ( ((numberHit > 0 && sneggySphere[tempAcross][tempDown] < 0) ||
                         (numberHit < 0 && sneggySphere[tempAcross][tempDown] > 0) ) && (x[0] != tempAcross) && (y[0] != tempDown)
-                        && sneggySphere[tempAcross][tempDown] == -100 && sneggySphere[tempAcross][tempDown] == 100);
+                        && sneggySphere[tempAcross][tempDown] <= -100 && sneggySphere[tempAcross][tempDown] >= 100);
                 if (numberHit > 0) {
                     sneggySphere[tempAcross][tempDown] += (int) Math.sqrt(tempNumberToDisplay);
                 } else {
@@ -274,7 +291,7 @@ public class GamePanel extends JPanel implements ActionListener {
                     tempAcross = random.nextInt(SQUARES_ACROSS);
                     tempDown = random.nextInt(SQUARES_DOWN);
                 } while ( (sneggySphere[tempAcross][tempDown] > 0 ) && (x[0] != tempAcross) && (y[0] != tempDown)
-                        && sneggySphere[tempAcross][tempDown] == -100 && sneggySphere[tempAcross][tempDown] == 100);
+                        && sneggySphere[tempAcross][tempDown] <= -100 && sneggySphere[tempAcross][tempDown] >= 100);
                 sneggySphere[tempAcross][tempDown] -= 1;
             }
     }
@@ -295,9 +312,7 @@ public class GamePanel extends JPanel implements ActionListener {
         for (int i = sneggyBodyParts; i > 0; i--) {
             x[i] = x[i - 1];
             y[i] = y[i - 1];
-            System.out.print(" (x["+i+"]: "+ + x[i] + " Y["+i+"]: " + y[i] +") ");
         }
-        System.out.println();
 
         switch (direction) {
             case 'U' -> y[0] = y[0] - 1;
@@ -306,7 +321,7 @@ public class GamePanel extends JPanel implements ActionListener {
             case 'R' -> x[0] = x[0] + 1;
 
             case '7' -> {  // UP Left
-                if (step == false) {
+                if (!step) {
                     y[0] = y[0] - 1;
                     step = true;
                 }else {
@@ -315,7 +330,7 @@ public class GamePanel extends JPanel implements ActionListener {
                 }
             }
             case '1' -> {  // UP Left
-                if (step == false) {
+                if (!step) {
                     y[0] = y[0] + 1;
                     step = true;
                 }else {
@@ -324,7 +339,7 @@ public class GamePanel extends JPanel implements ActionListener {
                 }
             }
             case '9' -> {  // UP Left
-                if (step == false) {
+                if (!step) {
                     y[0] = y[0] - 1;
                     step = true;
                 }else {
@@ -333,7 +348,7 @@ public class GamePanel extends JPanel implements ActionListener {
                 }
             }
             case '3' -> {  // UP Left
-                if (step == false) {
+                if (!step) {
                     y[0] = y[0] + 1;
                     step = true;
                 }else {
@@ -380,7 +395,7 @@ public class GamePanel extends JPanel implements ActionListener {
                 case KeyEvent.VK_LEFT:
                 case KeyEvent.VK_NUMPAD4:
                     testIfDiagnol(false);
-                    if (direction != 'R') {
+                    if ( (direction != 'R') && (direction != '9') && (direction != '3') ) {
                         direction = 'L';
                     }
                     break;
@@ -388,7 +403,7 @@ public class GamePanel extends JPanel implements ActionListener {
                 case KeyEvent.VK_RIGHT:
                 case KeyEvent.VK_NUMPAD6:
                     testIfDiagnol(false);
-                    if (direction != 'L') {
+                    if ( (direction != 'L') && (direction != '7') && (direction != '1') ) {
                         direction = 'R';
                     }
                     break;
@@ -396,7 +411,7 @@ public class GamePanel extends JPanel implements ActionListener {
                 case KeyEvent.VK_UP:
                 case KeyEvent.VK_NUMPAD8:
                     testIfDiagnol(false);
-                    if (direction != 'D') {
+                    if (direction != 'D' && (direction != '1') && (direction != '3')) {
                         direction = 'U';
                     }
                     break;
@@ -404,7 +419,7 @@ public class GamePanel extends JPanel implements ActionListener {
                 case KeyEvent.VK_DOWN:
                 case KeyEvent.VK_NUMPAD2:
                     testIfDiagnol(false);
-                    if (direction != 'U') {
+                    if (direction != 'U' && (direction != '7') && (direction != '9')) {
                         direction = 'D';
                     }
                     break;
@@ -427,7 +442,7 @@ public class GamePanel extends JPanel implements ActionListener {
                 //Diagonals!
                 case KeyEvent.VK_NUMPAD7:
                 case KeyEvent.VK_HOME:
-                    if (direction != '3') {
+                    if (direction != '3' && direction != 'D' && direction != 'R' ) {
                         testIfDiagnol(true);
                         direction = '7';
                     }
@@ -435,7 +450,7 @@ public class GamePanel extends JPanel implements ActionListener {
 
                 case KeyEvent.VK_NUMPAD9:
                 case KeyEvent.VK_PAGE_UP:
-                    if (direction != '1') {
+                    if (direction != '1' && direction != 'D' && direction != 'L' ) {
                         testIfDiagnol(true);
                         direction = '9';
                     }
@@ -443,7 +458,7 @@ public class GamePanel extends JPanel implements ActionListener {
 
                 case KeyEvent.VK_NUMPAD1:
                 case KeyEvent.VK_END:
-                    if (direction != '9') {
+                    if (direction != '9' && direction != 'U' && direction != 'R' ) {
                         testIfDiagnol(true);
                         direction = '1';
                     }
@@ -451,7 +466,7 @@ public class GamePanel extends JPanel implements ActionListener {
 
                 case KeyEvent.VK_NUMPAD3:
                 case KeyEvent.VK_PAGE_DOWN:
-                    if (direction != '7') {
+                    if (direction != '7' && direction != 'U' && direction != 'L') {
                         testIfDiagnol(true);
                         direction = '3';
                     }
