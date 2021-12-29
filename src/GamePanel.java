@@ -46,7 +46,7 @@ public class GamePanel extends JPanel implements ActionListener {
 
     public void startGame() {
         direction = 'D';
-        sneggyBodyParts = 2;
+        sneggyBodyParts = 10;
         sneggySpeed = 100;
         score = 0;
         running = true;
@@ -74,7 +74,7 @@ public class GamePanel extends JPanel implements ActionListener {
         super.paintComponent(g);
         drawNumbers(g);
         drawSneggy(g);
-        if (!running || score <= -2000) {
+        if (!running || sneggyBodyParts <= 0) {
             gameOver(g, "Sneggy Died!");
         }
         drawGrid(g);
@@ -226,6 +226,7 @@ public class GamePanel extends JPanel implements ActionListener {
                 sneggySpeed -= 5;
                 newSpeed();
                 scoreMultiplierFloat *= 1.106f; //score starts at 100 goes up to 750
+                sneggyBodyParts--;
                 return;
             }
         }
@@ -234,11 +235,10 @@ public class GamePanel extends JPanel implements ActionListener {
                 sneggySpeed += 5;
                 newSpeed();
                 scoreMultiplierFloat /= 1.106f; //score stats at 100 goes down to 13
+                sneggyBodyParts++;
                 return;
             }
         }
-
-        scoreMultiplierFloat = (scoreMultiplierFloat * (1 + (score / 100000.0f)));
         score += (scoreMultiplierInt * sneggySphere[x[0]][y[0]]);
 
         int tempAcross;
@@ -291,11 +291,14 @@ public class GamePanel extends JPanel implements ActionListener {
     }
 
     public void move() {
-        sneggyBodyParts = 2 + (score / 1000);
+
         for (int i = sneggyBodyParts; i > 0; i--) {
             x[i] = x[i - 1];
             y[i] = y[i - 1];
+            System.out.print(" (x["+i+"]: "+ + x[i] + " Y["+i+"]: " + y[i] +") ");
         }
+        System.out.println();
+
         switch (direction) {
             case 'U' -> y[0] = y[0] - 1;
             case 'D' -> y[0] = y[0] + 1;
