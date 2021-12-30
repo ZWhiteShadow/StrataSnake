@@ -301,13 +301,15 @@ public class GamePanel extends JPanel implements ActionListener {
         } else if (numberHit > 0) {
             int tempNumberToDisplay = Math.abs(numberHit);
             int numberToSplit = (int) Math.sqrt(tempNumberToDisplay);
-            for (int i = 0; i < tempNumberToDisplay / numberToSplit; i++) {
+            int loop = tempNumberToDisplay / numberToSplit;
+            for (int i = 0; i <loop; i++) {
                 do {
                     tempAcross = random.nextInt(SQUARES_ACROSS);
                     tempDown = random.nextInt(SQUARES_DOWN);
                 } while ((sneggySphere[tempAcross][tempDown] != 0) && (x[0] != tempAcross) && (y[0] != tempDown)
                         && sneggySphere[tempAcross][tempDown] <= -100 && sneggySphere[tempAcross][tempDown] >= 100);
                 sneggySphere[tempAcross][tempDown] += numberToSplit;
+                tempNumberToDisplay = tempNumberToDisplay - numberToSplit;
             }
             do {
                 tempAcross = random.nextInt(SQUARES_ACROSS);
