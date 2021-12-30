@@ -75,53 +75,86 @@ public class GamePanel extends JPanel implements ActionListener {
 
     //set numbers
     public void drawNumbers(Graphics g) {
+
         g.setFont(new Font("Terminal", Font.PLAIN, 16));
         for (int i = 0; i < SQUARES_ACROSS; i++) {
             for (int j = 0; j < SQUARES_DOWN; j++) {
-                if (sneggySphere[i][j] > 0) {
-                    g.setColor(Color.green);
-                    if (sneggySphere[i][j] > 9 && sneggySphere[i][j] < 100) {
-                        g.drawString(String.valueOf(sneggySphere[i][j]), (i * UNIT_SIZE) + 3, (j * UNIT_SIZE) + UNIT_SIZE - 7);
-                    } else if (sneggySphere[i][j] < 10) {
-                        g.drawString(String.valueOf(sneggySphere[i][j]), (i * UNIT_SIZE) + 8, (j * UNIT_SIZE) + UNIT_SIZE - 7);
-                    } else if (sneggySphere[i][j] == 100) {
-                        g.setColor(Color.green.darker());
-                        g.fillOval(i * UNIT_SIZE, j * UNIT_SIZE, UNIT_SIZE, UNIT_SIZE);
-                        g.setColor(Color.black);
-                        g.setFont(new Font("Terminal", Font.PLAIN, 36));
-                        g.drawString("+", (i * UNIT_SIZE) + 2, (j * UNIT_SIZE) + UNIT_SIZE);
-                    } else if (sneggySphere[i][j] == 200) {
-                        g.setColor(Color.green.darker());
-                        g.fillRect(i * UNIT_SIZE, j * UNIT_SIZE, UNIT_SIZE, UNIT_SIZE);
-                        g.setColor(Color.black);
-                        g.setFont(new Font("Terminal", Font.PLAIN, 36));
-                        g.drawString("+", (i * UNIT_SIZE) + 2, (j * UNIT_SIZE) + UNIT_SIZE);
-                    }
+
+                if (sneggySphere[i][j] > -100 && sneggySphere[i][j] < 100) {
+                    g.setFont(new Font("Terminal", Font.PLAIN, 16));
+                } else {
+                    g.setFont(new Font("Terminal", Font.PLAIN, 36));
                 }
-                g.setFont(new Font("Terminal", Font.PLAIN, 16));
-                if (sneggySphere[i][j] < 0) {
-                    g.setColor(Color.red);
-                    if (sneggySphere[i][j] < -9 && sneggySphere[i][j] > -100) {
-                        g.drawString(String.valueOf(sneggySphere[i][j] * -1), (i * UNIT_SIZE) + 3, (j * UNIT_SIZE) + UNIT_SIZE - 7);
-                    } else if (sneggySphere[i][j] > -10) {
-                        g.drawString(String.valueOf(sneggySphere[i][j] * -1), (i * UNIT_SIZE) + 8, (j * UNIT_SIZE) + UNIT_SIZE - 7);
-                    } else if (sneggySphere[i][j] == -100) {
-                        g.setColor(Color.red);
-                        g.fillOval(i * UNIT_SIZE, j * UNIT_SIZE, UNIT_SIZE, UNIT_SIZE);
-                        g.setColor(Color.black);
-                        g.setFont(new Font("Terminal", Font.PLAIN, 36));
-                        g.drawString("-", (i * UNIT_SIZE) + 7, (j * UNIT_SIZE) + UNIT_SIZE - 3);
-                    } else if (sneggySphere[i][j] == -200) {
-                        g.setColor(Color.red);
-                        g.fillRect(i * UNIT_SIZE, j * UNIT_SIZE, UNIT_SIZE, UNIT_SIZE);
-                        g.setColor(Color.black);
-                        g.setFont(new Font("Terminal", Font.PLAIN, 36));
-                        g.drawString("-", (i * UNIT_SIZE) + 7, (j * UNIT_SIZE) + UNIT_SIZE - 3);
+
+                if (sneggySphere[i][j] == level) {
+                    g.setColor(Color.white);
+                    g.fillRect(i * UNIT_SIZE, j * UNIT_SIZE, UNIT_SIZE, UNIT_SIZE);
+                    g.setColor(Color.black);
+                    if (sneggySphere[i][j] > 9) {
+                        g.drawString(String.valueOf(sneggySphere[i][j]), (i * UNIT_SIZE) + 3, (j * UNIT_SIZE) + UNIT_SIZE - 7);
+                    } else {
+                        g.drawString(String.valueOf(sneggySphere[i][j]), (i * UNIT_SIZE) + 8, (j * UNIT_SIZE) + UNIT_SIZE - 7);
                     }
+
+                } else if (sneggySphere[i][j] == 1) {
+                    g.setColor(new Color(249, 166, 2));
+                    g.fillOval(i * UNIT_SIZE, j * UNIT_SIZE, UNIT_SIZE, UNIT_SIZE);
+                    g.setColor(Color.black);
+                    if (sneggySphere[i][j] > 9) {
+                        g.drawString(String.valueOf(sneggySphere[i][j]), (i * UNIT_SIZE) + 3, (j * UNIT_SIZE) + UNIT_SIZE - 7);
+                    } else {
+                        g.drawString(String.valueOf(sneggySphere[i][j]), (i * UNIT_SIZE) + 8, (j * UNIT_SIZE) + UNIT_SIZE - 7);
+                    }
+
+                } else if (sneggySphere[i][j] < -1 && sneggySphere[i][j] > -100) {
+
+                    g.setColor(Color.red.darker());
+                    g.fillOval(i * UNIT_SIZE, j * UNIT_SIZE, UNIT_SIZE, UNIT_SIZE);
+                    g.setColor(Color.white);
+                    if (sneggySphere[i][j] < -9) {
+                        g.drawString(String.valueOf(sneggySphere[i][j] * -1), (i * UNIT_SIZE) + 3, (j * UNIT_SIZE) + UNIT_SIZE - 7);
+                    } else {
+                        g.drawString(String.valueOf(sneggySphere[i][j] * -1), (i * UNIT_SIZE) + 8, (j * UNIT_SIZE) + UNIT_SIZE - 7);
+                    }
+
+                } else if (sneggySphere[i][j] == 100) {
+                    g.setColor(Color.green.darker());
+                    g.fillOval(i * UNIT_SIZE, j * UNIT_SIZE, UNIT_SIZE, UNIT_SIZE);
+                    g.setColor(Color.black);
+                    g.drawString("+", (i * UNIT_SIZE) + 2, (j * UNIT_SIZE) + UNIT_SIZE);
+
+                } else if (sneggySphere[i][j] == 200) {
+                    g.setColor(Color.green.darker());
+                    g.fillRect(i * UNIT_SIZE, j * UNIT_SIZE, UNIT_SIZE, UNIT_SIZE);
+                    g.setColor(Color.black);
+                    g.drawString("+", (i * UNIT_SIZE) + 2, (j * UNIT_SIZE) + UNIT_SIZE);
+                } else if (sneggySphere[i][j] == -100) {
+                    g.setColor(Color.yellow);
+                    g.fillOval(i * UNIT_SIZE, j * UNIT_SIZE, UNIT_SIZE, UNIT_SIZE);
+                    g.setColor(Color.black);
+                    g.drawString("-", (i * UNIT_SIZE) + 7, (j * UNIT_SIZE) + UNIT_SIZE - 3);
+
+                } else if (sneggySphere[i][j] == -200) {
+                    g.setColor(Color.yellow);
+                    g.fillRect(i * UNIT_SIZE, j * UNIT_SIZE, UNIT_SIZE, UNIT_SIZE);
+                    g.setColor(Color.black);
+                    g.drawString("-", (i * UNIT_SIZE) + 7, (j * UNIT_SIZE) + UNIT_SIZE - 3);
+
+                } else if (sneggySphere[i][j] > 0) {
+                    g.setColor(Color.green);
+                    if (sneggySphere[i][j] > 9) {
+                        g.drawString(String.valueOf(sneggySphere[i][j]), (i * UNIT_SIZE) + 3, (j * UNIT_SIZE) + UNIT_SIZE - 7);
+                    } else {
+                        g.drawString(String.valueOf(sneggySphere[i][j]), (i * UNIT_SIZE) + 8, (j * UNIT_SIZE) + UNIT_SIZE - 7);
+                    }
+                } else if (sneggySphere[i][j] < 0) {
+                    g.setColor(new Color(70,0,0 ));
+                    g.fillRect(i * UNIT_SIZE, j * UNIT_SIZE, UNIT_SIZE, UNIT_SIZE);
                 }
             }
         }
     }
+
 
     // set snake named SNEGGY
     public void drawSneggy(Graphics g) {
@@ -206,6 +239,7 @@ public class GamePanel extends JPanel implements ActionListener {
     }
 
     public void newLevel(float numberToDisplay) {
+
         Arrays.stream(sneggySphere).forEach(a -> Arrays.fill(a, 0));
         int tempAcross;
         int tempDown;
@@ -264,23 +298,23 @@ public class GamePanel extends JPanel implements ActionListener {
                 newLevel(numbersLeft);
                 return;
             }
-
-        } else {
+        } else if (numberHit > 0) {
             int tempNumberToDisplay = Math.abs(numberHit);
-            do {
+            int numberToSplit = (int) Math.sqrt(tempNumberToDisplay);
+            for (int i = 0; i < tempNumberToDisplay / numberToSplit; i++) {
                 do {
                     tempAcross = random.nextInt(SQUARES_ACROSS);
                     tempDown = random.nextInt(SQUARES_DOWN);
-                } while (((numberHit > 0 && sneggySphere[tempAcross][tempDown] < 0) ||
-                        (numberHit < 0 && sneggySphere[tempAcross][tempDown] > 0)) && (x[0] != tempAcross) && (y[0] != tempDown)
+                } while ((sneggySphere[tempAcross][tempDown] != 0) && (x[0] != tempAcross) && (y[0] != tempDown)
                         && sneggySphere[tempAcross][tempDown] <= -100 && sneggySphere[tempAcross][tempDown] >= 100);
-                if (numberHit > 0) {
-                    sneggySphere[tempAcross][tempDown] += (int) Math.sqrt(tempNumberToDisplay);
-                } else {
-                    sneggySphere[tempAcross][tempDown] -= (int) Math.sqrt(tempNumberToDisplay);
-                }
-                tempNumberToDisplay -= (int) Math.sqrt(tempNumberToDisplay);
-            } while (tempNumberToDisplay > 0);
+                sneggySphere[tempAcross][tempDown] += numberToSplit;
+            }
+            do {
+                tempAcross = random.nextInt(SQUARES_ACROSS);
+                tempDown = random.nextInt(SQUARES_DOWN);
+            } while ((sneggySphere[tempAcross][tempDown] != 0) && (x[0] != tempAcross) && (y[0] != tempDown)
+                    && sneggySphere[tempAcross][tempDown] <= -100 && sneggySphere[tempAcross][tempDown] >= 100);
+            sneggySphere[tempAcross][tempDown] += tempNumberToDisplay;
         }
         for (int i = 0; i < numberHit; i++) {
             do {
@@ -378,7 +412,6 @@ public class GamePanel extends JPanel implements ActionListener {
             }
         }
     }
-
 
     public class MyKeyAdapter extends KeyAdapter {
         @Override
