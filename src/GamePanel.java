@@ -45,8 +45,8 @@ public class GamePanel extends JPanel implements ActionListener {
 
     public void startGame() {
         direction = 'D';
-        sneggyBodyParts = 10;
-        sneggySpeed = 100;
+        sneggyBodyParts = 3;
+        sneggySpeed = 150;
         score = 0;
         running = true;
         scoreMultiplierFloat = 100.0f;
@@ -96,28 +96,35 @@ public class GamePanel extends JPanel implements ActionListener {
                         g.drawString(String.valueOf(sneggySphere[i][j]), (i * UNIT_SIZE) + 8, (j * UNIT_SIZE) + UNIT_SIZE - 7);
                     }
 
-                } else if (sneggySphere[i][j] == 1) {
-                    g.setColor(new Color(249, 166, 2));
+                } else if (sneggySphere[i][j] == -200) {
+                    g.setColor(Color.red.brighter());
+                    g.fillRect(i * UNIT_SIZE, j * UNIT_SIZE, UNIT_SIZE, UNIT_SIZE);
+                    g.setColor(Color.black);
+                    g.drawString("-", (i * UNIT_SIZE) + 7, (j * UNIT_SIZE) + UNIT_SIZE - 3);
+                }  else if (sneggySphere[i][j] == -100) {
+                    g.setColor(Color.red.brighter());
                     g.fillOval(i * UNIT_SIZE, j * UNIT_SIZE, UNIT_SIZE, UNIT_SIZE);
                     g.setColor(Color.black);
-                    if (sneggySphere[i][j] > 9) {
-                        g.drawString(String.valueOf(sneggySphere[i][j]), (i * UNIT_SIZE) + 3, (j * UNIT_SIZE) + UNIT_SIZE - 7);
-                    } else {
-                        g.drawString(String.valueOf(sneggySphere[i][j]), (i * UNIT_SIZE) + 8, (j * UNIT_SIZE) + UNIT_SIZE - 7);
-                    }
+                    g.drawString("-", (i * UNIT_SIZE) + 7, (j * UNIT_SIZE) + UNIT_SIZE - 3);
 
                 } else if (sneggySphere[i][j] < -1 && sneggySphere[i][j] > -100) {
-
-                    g.setColor(Color.red.darker());
+                    g.setColor(Color.red);
                     g.fillOval(i * UNIT_SIZE, j * UNIT_SIZE, UNIT_SIZE, UNIT_SIZE);
-                    g.setColor(Color.white);
+                    g.setColor(Color.black);
                     if (sneggySphere[i][j] < -9) {
                         g.drawString(String.valueOf(sneggySphere[i][j] * -1), (i * UNIT_SIZE) + 3, (j * UNIT_SIZE) + UNIT_SIZE - 7);
                     } else {
                         g.drawString(String.valueOf(sneggySphere[i][j] * -1), (i * UNIT_SIZE) + 8, (j * UNIT_SIZE) + UNIT_SIZE - 7);
                     }
 
-                } else if (sneggySphere[i][j] == 100) {
+                }else if (sneggySphere[i][j] < 0) {
+                    g.setColor(new Color(120,0,0 ));
+                    g.fillRect(i * UNIT_SIZE, j * UNIT_SIZE, UNIT_SIZE, UNIT_SIZE);
+                }
+                else if (sneggySphere[i][j] == 1) {
+                    g.setColor(Color.green.brighter());
+                    g.fillRect(i * UNIT_SIZE, j * UNIT_SIZE, UNIT_SIZE, UNIT_SIZE);
+                }  else if (sneggySphere[i][j] == 100) {
                     g.setColor(Color.green.darker());
                     g.fillOval(i * UNIT_SIZE, j * UNIT_SIZE, UNIT_SIZE, UNIT_SIZE);
                     g.setColor(Color.black);
@@ -128,33 +135,20 @@ public class GamePanel extends JPanel implements ActionListener {
                     g.fillRect(i * UNIT_SIZE, j * UNIT_SIZE, UNIT_SIZE, UNIT_SIZE);
                     g.setColor(Color.black);
                     g.drawString("+", (i * UNIT_SIZE) + 2, (j * UNIT_SIZE) + UNIT_SIZE);
-                } else if (sneggySphere[i][j] == -100) {
-                    g.setColor(Color.yellow);
+
+                }else if (sneggySphere[i][j] > 0) {
+                    g.setColor(Color.green);
                     g.fillOval(i * UNIT_SIZE, j * UNIT_SIZE, UNIT_SIZE, UNIT_SIZE);
                     g.setColor(Color.black);
-                    g.drawString("-", (i * UNIT_SIZE) + 7, (j * UNIT_SIZE) + UNIT_SIZE - 3);
-
-                } else if (sneggySphere[i][j] == -200) {
-                    g.setColor(Color.yellow);
-                    g.fillRect(i * UNIT_SIZE, j * UNIT_SIZE, UNIT_SIZE, UNIT_SIZE);
-                    g.setColor(Color.black);
-                    g.drawString("-", (i * UNIT_SIZE) + 7, (j * UNIT_SIZE) + UNIT_SIZE - 3);
-
-                } else if (sneggySphere[i][j] > 0) {
-                    g.setColor(Color.green);
-                    if (sneggySphere[i][j] > 9) {
+                    if (sneggySphere[i][j] < -9) {
                         g.drawString(String.valueOf(sneggySphere[i][j]), (i * UNIT_SIZE) + 3, (j * UNIT_SIZE) + UNIT_SIZE - 7);
                     } else {
                         g.drawString(String.valueOf(sneggySphere[i][j]), (i * UNIT_SIZE) + 8, (j * UNIT_SIZE) + UNIT_SIZE - 7);
                     }
-                } else if (sneggySphere[i][j] < 0) {
-                    g.setColor(new Color(70,0,0 ));
-                    g.fillRect(i * UNIT_SIZE, j * UNIT_SIZE, UNIT_SIZE, UNIT_SIZE);
                 }
             }
         }
     }
-
 
     // set snake named SNEGGY
     public void drawSneggy(Graphics g) {
@@ -224,7 +218,8 @@ public class GamePanel extends JPanel implements ActionListener {
 
         scoreMultiplierInt = (int) scoreMultiplierFloat;
         displayLevel = level + ((level - numbersLeft) / level);
-        int displaySpeed = (int) ((100 - (sneggySpeed / 2)) / 5);
+        int displaySpeed = (int) (150 - sneggySpeed) / 5 ;
+
         //sneggySpeed / Per Unit /  Score
         g.setFont(new Font("Terminal", Font.PLAIN, 30));
         g.setColor(Color.green);
@@ -269,12 +264,10 @@ public class GamePanel extends JPanel implements ActionListener {
             }
         }
         if (numberHit == -100) { // speed up
-            if (sneggySpeed < 200) {
                 sneggySpeed += 5;
                 newSpeed();
                 scoreMultiplierFloat /= 1.106f; //score stats at 100 goes down to 13
                 return;
-            }
         }
         if (numberHit == 200) { // slow down
             sneggyBodyParts++;
@@ -300,9 +293,8 @@ public class GamePanel extends JPanel implements ActionListener {
             }
         } else if (numberHit > 0) {
             int tempNumberToDisplay = Math.abs(numberHit);
-            int numberToSplit = (int) Math.sqrt(tempNumberToDisplay);
-            int loop = tempNumberToDisplay / numberToSplit;
-            for (int i = 0; i <loop; i++) {
+            int numberToSplit = tempNumberToDisplay / 2;
+            for (int i = 0; i < 2; i++) {
                 do {
                     tempAcross = random.nextInt(SQUARES_ACROSS);
                     tempDown = random.nextInt(SQUARES_DOWN);
@@ -466,28 +458,60 @@ public class GamePanel extends JPanel implements ActionListener {
                 //Diagonals!
                 case KeyEvent.VK_NUMPAD7:
                 case KeyEvent.VK_HOME:
-                    if (direction != '3' && direction != 'D' && direction != 'R') {
+                    if (direction == 'D'){
+                        direction = 'L';
+                        break;
+                    }
+                    if (direction == 'R'){
+                        direction = 'U';
+                        break;
+                    }
+                    if (direction != '3') {
                         direction = '7';
                     }
                     break;
 
                 case KeyEvent.VK_NUMPAD9:
                 case KeyEvent.VK_PAGE_UP:
-                    if (direction != '1' && direction != 'D' && direction != 'L') {
+                    if (direction == 'D'){
+                        direction = 'R';
+                        break;
+                    }
+                    if (direction == 'L') {
+                        direction = 'U';
+                        break;
+                    }
+                    if (direction != '1') {
                         direction = '9';
                     }
                     break;
 
                 case KeyEvent.VK_NUMPAD1:
                 case KeyEvent.VK_END:
-                    if (direction != '9' && direction != 'U' && direction != 'R') {
+                    if (direction == 'U'){
+                        direction = 'L';
+                        break;
+                    }
+                    if (direction == 'R') {
+                        direction = 'D';
+                        break;
+                    }
+                    if (direction != '9') {
                         direction = '1';
                     }
                     break;
 
                 case KeyEvent.VK_NUMPAD3:
                 case KeyEvent.VK_PAGE_DOWN:
-                    if (direction != '7' && direction != 'U' && direction != 'L') {
+                    if (direction == 'U'){
+                        direction = 'R';
+                        break;
+                    }
+                    if (direction == 'L') {
+                        direction = 'D';
+                        break;
+                    }
+                    if (direction != '7') {
                         direction = '3';
                     }
                     break;

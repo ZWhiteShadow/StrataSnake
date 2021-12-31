@@ -2,7 +2,7 @@ import javax.swing.*;
 
 public class GameFrame extends JFrame {
     GameFrame(){
-        this.add(new GamePanel());
+        this.add(new  GamePanel());
         this.setTitle("Sneggy in StrataSnake");
         this.setResizable(false);
         this.pack();
