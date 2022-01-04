@@ -22,10 +22,8 @@ public class GamePanel extends JPanel implements ActionListener {
     int[][] sneggySphere;
     double sneggySpeed; //How fast game is running
     float scoreMultiplierFloat;
-    int scoreMultiplierInt;
     int score;
     int sneggyBodyParts;
-    int difficulty;
     float numbersLeft;
     float displayLevel;
     float level;
@@ -37,6 +35,10 @@ public class GamePanel extends JPanel implements ActionListener {
     boolean step = false;
     int tempAcross;
     int tempDown;
+    int tempRedCount;
+    int tempBlueCount;
+    int difficulty;
+    boolean waitingForNextLevel;
 
     GamePanel() {
         random = new Random();
@@ -48,9 +50,13 @@ public class GamePanel extends JPanel implements ActionListener {
     }
 
     public void startGame() {
+        waitingForNextLevel = true;
+        tempRedCount = 0;
+        tempBlueCount = 0;
+        difficulty = 0;
         direction = 'D';
         sneggyBodyParts = 3;
-        sneggySpeed = 100;
+        sneggySpeed = 125;
         score = 0;
         running = true;
         scoreMultiplierFloat = 100.0f;
@@ -59,7 +65,6 @@ public class GamePanel extends JPanel implements ActionListener {
         sneggySphere = new int[SQUARES_ACROSS][SQUARES_DOWN];
         Arrays.stream(sneggySphere).forEach(a -> Arrays.fill(a, 0));
         level = 1;
-        difficulty = 0;
         gameStarted = false;
         numbersLeft = level;
         newLevel(numbersLeft);
@@ -71,7 +76,7 @@ public class GamePanel extends JPanel implements ActionListener {
         super.paintComponent(g);
         drawNumbers(g);
         drawSneggy(g);
-        if (!running || sneggyBodyParts <= 1) {
+        if (!running || sneggyBodyParts <= 1 || score < 0) {
             gameOver(g, "Sneggy Died!");
         }
         drawGrid(g);
@@ -83,13 +88,13 @@ public class GamePanel extends JPanel implements ActionListener {
     public void drawNumbers(Graphics g) {
 
         g.setFont(new Font("Terminal", Font.PLAIN, 16));
+        tempRedCount = 0;
+        tempBlueCount = 0;
         for (int i = 0; i < SQUARES_ACROSS; i++) {
             for (int j = 0; j < SQUARES_DOWN; j++) {
-
                 if (sneggySphere[i][j] == 100 || sneggySphere[i][j] == 200 || (sneggySphere[i][j] / 300 == Math.round((float) sneggySphere[i][j] / 300)) ||
                         sneggySphere[i][j] == -100 || sneggySphere[i][j] == -200 || (sneggySphere[i][j] < 0 && sneggySphere[i][j] > -99) ||
                         (sneggySphere[i][j] > 0 && sneggySphere[i][j] < 99) || sneggySphere[i][j] == 0) {
-
                 } else {
                     System.out.println("(X: " + i + " Y: " + j + " ) " + sneggySphere[i][j]);
                 }
@@ -135,6 +140,7 @@ public class GamePanel extends JPanel implements ActionListener {
                 } else if (sneggySphere[i][j] < 0) {
                     g.setColor(new Color(120, 0, 0));
                     g.fillRect(i * UNIT_SIZE, j * UNIT_SIZE, UNIT_SIZE, UNIT_SIZE);
+                    tempRedCount++;
                 } else if (sneggySphere[i][j] == 1) {
                     g.setColor(Color.green.brighter());
                     g.fillRect(i * UNIT_SIZE, j * UNIT_SIZE, UNIT_SIZE, UNIT_SIZE);
@@ -155,6 +161,7 @@ public class GamePanel extends JPanel implements ActionListener {
                     g.fillRect(i * UNIT_SIZE, j * UNIT_SIZE, UNIT_SIZE, UNIT_SIZE);
 
                 } else if (sneggySphere[i][j] > 300) {
+                    tempBlueCount++;
                     g.setColor(Color.blue.brighter());
                     g.fillOval(i * UNIT_SIZE, j * UNIT_SIZE, UNIT_SIZE, UNIT_SIZE);
                     g.setColor(Color.black);
@@ -176,11 +183,15 @@ public class GamePanel extends JPanel implements ActionListener {
                 }
             }
         }
+        if (waitingForNextLevel) {
+            difficulty = (int) (((tempRedCount + (level  * 2)) / (level * 2)) * 100);
+        }else{
+            difficulty = (int) ((tempRedCount / (level * 2)) * 100);
+        }
     }
 
     // set snake named SNEGGY
     public void drawSneggy(Graphics g) {
-        if (score > -2000) {
             for (int i = 0; i < sneggyBodyParts; i++) {
                 if (i == 0) {
                     g.setColor(Color.GREEN.darker());
@@ -190,7 +201,6 @@ public class GamePanel extends JPanel implements ActionListener {
                     g.fillRect(x[i] * UNIT_SIZE, y[i] * UNIT_SIZE, UNIT_SIZE, UNIT_SIZE);
                 }
             }
-        }
     }
 
     public void gameOver(Graphics g, String message) {
@@ -244,17 +254,17 @@ public class GamePanel extends JPanel implements ActionListener {
         g.setFont(new Font("Terminal", Font.PLAIN, (int) (UNIT_SIZE * 1.5)));
         g.drawString("       StrataSnake \uD83D\uDC0D", 0, SCREEN_HEIGHT + (BOTTOM_PANEL / 2) + 15);
 
-        scoreMultiplierInt = (int) scoreMultiplierFloat;
         displayLevel = level + ((level - numbersLeft) / level);
-        int displaySpeed = (int) (100 - sneggySpeed) / 5;
-        
+        int displaySpeed = (int) (125 - sneggySpeed) / 5;
+        int displayPerUnit = (difficulty > 100) ? (int) (scoreMultiplierFloat * (difficulty / 100f)) : (int) scoreMultiplierFloat;
         //sneggySpeed / Per Unit /  Score
         g.setFont(new Font("Terminal", Font.PLAIN, 24));
         g.setColor(Color.green);
         g.drawString("Level: " + decimal.format(displayLevel) +
+                        "   Difficulty: " + difficulty + "%" +
                 "   Speed: " + displaySpeed +
                 "   Length: " + sneggyBodyParts +
-                "   Per Unit: " + withCommas.format(scoreMultiplierInt) +
+                "   Per Unit: " + withCommas.format(displayPerUnit) +
                 "   Score: " + withCommas.format(score), SCREEN_WIDTH / 3, SCREEN_HEIGHT
                 + (BOTTOM_PANEL / 2) + 5);
         g.setFont(new Font("Terminal", Font.PLAIN, 30));
@@ -267,6 +277,7 @@ public class GamePanel extends JPanel implements ActionListener {
             tempDown = random.nextInt(SQUARES_DOWN);
         } while (sneggySphere[tempAcross][tempDown] < 0 || sneggySphere[tempAcross][tempDown] >= 99);
         sneggySphere[tempAcross][tempDown] += numberToDisplay;
+        waitingForNextLevel = true;
     }
 
     public void newNumbers(int numberHit) {
@@ -281,20 +292,20 @@ public class GamePanel extends JPanel implements ActionListener {
         if (numberHit == -100) { // speed up
             sneggySpeed += 5;
             newSpeed();
-            scoreMultiplierFloat /= 1.106f; //score stats at 100 goes down to 13
+            scoreMultiplierFloat /= 1.106f;
             return;
         }
-        if (numberHit == 200) { // slow down
+        if (numberHit == 200) { // 1 extra body parts - less per unit - Yellow Square /w  "-" sign
             sneggyBodyParts++;
-            scoreMultiplierFloat *= 1.053f;
+            scoreMultiplierFloat *= 1.106f;
             return;
         }
-        if (numberHit == -200) { // slow down
-            scoreMultiplierFloat /= 1.053f;
+        if (numberHit == -200) { //  1 less body parts - less per unit - Yellow Square /w  "-" sign
+            scoreMultiplierFloat /= 1.106f;
             sneggyBodyParts--;
             return;
         }
-        if (numberHit >= 300) { //change difficultly
+        if (numberHit >= 300) { // blue is hit
             for (int i = 0; i < (Math.abs(numberHit) / 300); i++) {
                 do {
                     tempAcross = random.nextInt(SQUARES_ACROSS);
@@ -302,19 +313,20 @@ public class GamePanel extends JPanel implements ActionListener {
                 } while (sneggySphere[tempAcross][tempDown] >= 0 || sneggySphere[tempAcross][tempDown] <= -100);
                 sneggySphere[tempAcross][tempDown]++;
             }
-            scoreMultiplierInt += numberHit / 300;
             return;
         }
-
+        float bonus = (difficulty > 100) ? scoreMultiplierFloat * (difficulty / 100f) :scoreMultiplierFloat;
         if (numberHit <= 5) {
-            score += (scoreMultiplierInt * sneggySphere[x[0]][y[0]]);
+            score += (bonus * sneggySphere[x[0]][y[0]]) ;
+
         } else if (numberHit <= 10) {
-            score += (scoreMultiplierInt * 5);
+            score += (bonus * 5);
         } else {
-            score += (scoreMultiplierInt * 10);
+            score += (bonus * 10);
         }
 
         if (numberHit == level) {
+            waitingForNextLevel = false;
             for (int i = -2; i < 3; i++) {
                 do {
                     tempAcross = random.nextInt(SQUARES_ACROSS);
@@ -345,8 +357,8 @@ public class GamePanel extends JPanel implements ActionListener {
             }
             numbersLeft--;
             if (numbersLeft == 0) {
-                int tempRedCount = 0;
-                int tempBlueCount = 0;
+                tempRedCount = 0;
+                tempBlueCount = 0;
                 for (int i = 0; i < SQUARES_ACROSS; i++) {
                     for (int j = 0; j < SQUARES_DOWN; j++) {
                         if (sneggySphere[i][j] == 100 ||
@@ -363,15 +375,22 @@ public class GamePanel extends JPanel implements ActionListener {
                         }
                     }
                 }
-                for (int i = 0; i < (tempBlueCount - tempRedCount); i++){
+                for (int i = 0; i < (tempBlueCount - tempRedCount); i++) { // if more blues reds - remove blues
+                    do {
+                        tempAcross = random.nextInt(SQUARES_ACROSS);
+                        tempDown = random.nextInt(SQUARES_DOWN);
+                    } while (sneggySphere[tempAcross][tempDown] < 300);
+                        sneggySphere[tempAcross][tempDown] -= 300;
+                }
+                for (int i = 0; i < (tempRedCount - tempBlueCount); i++){ // if more red blues - add blues
                     do {
                         tempAcross = random.nextInt(SQUARES_ACROSS);
                         tempDown = random.nextInt(SQUARES_DOWN);
                         if (sneggySphere[tempAcross][tempDown] >= 300){
                             break;
                         }
-                    } while (true);
-                    sneggySphere[tempAcross][tempDown] -= 300;
+                    } while (sneggySphere[tempAcross][tempDown] != 0);
+                    sneggySphere[tempAcross][tempDown] += 300;
                 }
                 level++;
                 numbersLeft = level;
@@ -379,18 +398,16 @@ public class GamePanel extends JPanel implements ActionListener {
                 return;
             }
         }
+
         if (numberHit < 0) {
-            scoreMultiplierFloat += numberHit * 2;
-            for (int i = 0; i < 2 + difficulty; i++) {  //Only +difficulty for new Level
                 do {
                     tempAcross = random.nextInt(SQUARES_ACROSS);
                     tempDown = random.nextInt(SQUARES_DOWN);
-                } while (sneggySphere[tempAcross][tempDown] <= -99 || sneggySphere[tempAcross][tempDown] > 0);
+                } while (sneggySphere[tempAcross][tempDown] <= -99 || sneggySphere[tempAcross][tempDown] >= 0);
                 sneggySphere[tempAcross][tempDown]--;
-            }
         }
         if (numberHit == level) {
-            for (int i = 0; i < (Math.abs(numberHit) * 2) + difficulty; i++) {  //Only +difficulty for new Level
+            for (int i = 0; i < (Math.abs(numberHit) * 2); i++) {
                 do {
                     tempAcross = random.nextInt(SQUARES_ACROSS);
                     tempDown = random.nextInt(SQUARES_DOWN);
@@ -465,7 +482,7 @@ public class GamePanel extends JPanel implements ActionListener {
                     step = false;
                 }
             }
-            case '9' -> {  // UP Left
+            case '9' -> {  // UP Right
                 if (!step) {
                     y[0] = y[0] - 1;
                     step = true;
@@ -474,7 +491,7 @@ public class GamePanel extends JPanel implements ActionListener {
                     step = false;
                 }
             }
-            case '3' -> {  // UP Left
+            case '3' -> {  // Down Right
                 if (!step) {
                     y[0] = y[0] + 1;
                     step = true;
@@ -539,7 +556,7 @@ public class GamePanel extends JPanel implements ActionListener {
 
                 case KeyEvent.VK_ENTER: //pause game
                     if (timer.isRunning()) {
-                        sneggySpeed = 150;
+                        sneggySpeed = 125;
                         newSpeed();
                         timer.stop();
                     } else {
