@@ -35,10 +35,14 @@ public class GamePanel extends JPanel implements ActionListener {
     boolean step = false;
     int tempAcross;
     int tempDown;
-    int tempRedCount;
-    int tempBlueCount;
+    int redCount;
+    int hollowRedCount;
+    int hollowYellowCount;
+    int yellowCount;
     int difficulty;
     boolean waitingForNextLevel;
+    int highScore;
+    float scoreLevel;
 
     GamePanel() {
         random = new Random();
@@ -51,8 +55,6 @@ public class GamePanel extends JPanel implements ActionListener {
 
     public void startGame() {
         waitingForNextLevel = true;
-        tempRedCount = 0;
-        tempBlueCount = 0;
         difficulty = 0;
         direction = 'D';
         sneggyBodyParts = 11;
@@ -89,27 +91,23 @@ public class GamePanel extends JPanel implements ActionListener {
     public void drawNumbers(Graphics g) {
 
         g.setFont(new Font("Terminal", Font.PLAIN, 16));
-        tempRedCount = 0;
-        tempBlueCount = 0;
+
+        redCount = 0;
+        hollowRedCount = 0;
+        yellowCount = 0;
+        hollowYellowCount = 0;
         for (int i = 0; i < SQUARES_ACROSS; i++) {
             for (int j = 0; j < SQUARES_DOWN; j++) {
-                if ((sneggySphere[i][j] / 300 == Math.round((float) sneggySphere[i][j] / 300)) ||
-                        (sneggySphere[i][j] % -100 == 0) || (sneggySphere[i][j] < 0 && sneggySphere[i][j] > -99) ||
-                        (sneggySphere[i][j] > 0 && sneggySphere[i][j] < 99) || sneggySphere[i][j] == 0) {
-                } else {
-                    System.out.println("ERROR: (X: " + i + " Y: " + j + " ) " + sneggySphere[i][j]);
-                }
 
-                if ((sneggySphere[i][j] > -100 && sneggySphere[i][j] < 100) || (sneggySphere[i][j] >= 300)) {
+                if (sneggySphere[i][j] > -100 || sneggySphere[i][j] >= 300) {
                     g.setFont(new Font("Terminal", Font.PLAIN, 16));
                 } else {
                     g.setFont(new Font("Terminal", Font.PLAIN, 36));
                 }
 
                 if ((((sneggySphere[i][j] == level) && (gameStarted) && level != 1) || ((sneggySphere[i][j] == level) && (level == 1) && (!gameStarted)))) {
-                    g.setColor(Color.white);
-                    g.fillRect(i * UNIT_SIZE, j * UNIT_SIZE, UNIT_SIZE, UNIT_SIZE);
-                    g.setColor(Color.black);
+                    g.setColor(Color.green);
+                    g.drawRect(i * UNIT_SIZE + 2, j * UNIT_SIZE + 2, UNIT_SIZE -4 , UNIT_SIZE -4);
                     if (sneggySphere[i][j] > 9) {
                         g.drawString(String.valueOf(sneggySphere[i][j]), (i * UNIT_SIZE) + 3, (j * UNIT_SIZE) + UNIT_SIZE - 7);
                     } else {
@@ -117,6 +115,8 @@ public class GamePanel extends JPanel implements ActionListener {
                     }
 
                 } else if (sneggySphere[i][j] <= -100) { // loss of a limited number of body parts
+                    yellowCount += (sneggySphere[i][j] / -100);
+
                     if (sneggyBodyParts - (sneggySphere[i][j] / -100) <= 1) {
                         g.setColor(new Color(255, 0, 0));
                     } else {
@@ -131,7 +131,7 @@ public class GamePanel extends JPanel implements ActionListener {
                     g.drawString("!", (i * UNIT_SIZE) + 7, (j * UNIT_SIZE) + UNIT_SIZE - 3);
 
                 } else if (sneggySphere[i][j] < -1 && sneggySphere[i][j] >= -99) {
-                    tempRedCount -= sneggySphere[i][j];
+                    redCount -= sneggySphere[i][j];
                     g.setColor(Color.red.brighter().brighter());
                     g.fillOval(i * UNIT_SIZE, j * UNIT_SIZE, UNIT_SIZE, UNIT_SIZE);
                     g.setColor(Color.black);
@@ -142,27 +142,37 @@ public class GamePanel extends JPanel implements ActionListener {
                     }
 
                 } else if (sneggySphere[i][j] < 0) {
-                    g.setColor(new Color(120, 0, 0));
+                    g.setColor(new Color(247,33,25));
                     g.fillRect(i * UNIT_SIZE, j * UNIT_SIZE, UNIT_SIZE, UNIT_SIZE);
-                    g.setColor(Color.white);
-                    g.drawString(String.valueOf(sneggySphere[i][j] * -1), (i * UNIT_SIZE) + 8, (j * UNIT_SIZE) + UNIT_SIZE - 7);
-                    tempRedCount++;
+                    redCount++;
+                }
+                else if (sneggySphere[i][j] > 100 && sneggySphere[i][j] < 300) {
+                        g.setColor(Color.yellow);
+                         g.drawRect(i * UNIT_SIZE + 2, j * UNIT_SIZE + 2, UNIT_SIZE -4 , UNIT_SIZE -4);
+                        if (sneggySphere[i][j] != 101) {
+                            if (sneggySphere[i][j] > 9) {
+                                g.drawString(String.valueOf(sneggySphere[i][j] - 100), (i * UNIT_SIZE) + 3, (j * UNIT_SIZE) + UNIT_SIZE - 7);
+                            } else {
+                                g.drawString(String.valueOf(sneggySphere[i][j] - 100), (i * UNIT_SIZE) + 8, (j * UNIT_SIZE) + UNIT_SIZE - 7);
+                            }
+                        }
+                        hollowYellowCount++;
 
                 } else if (sneggySphere[i][j] == 1) {
                     g.setColor(Color.green.brighter());
-                    g.fillRect(i * UNIT_SIZE, j * UNIT_SIZE, UNIT_SIZE, UNIT_SIZE);
-                    g.setColor(Color.black);
-                    g.drawString(String.valueOf(sneggySphere[i][j]), (i * UNIT_SIZE) + 8, (j * UNIT_SIZE) + UNIT_SIZE - 7);
+                    g.drawRect(i * UNIT_SIZE + 2, j * UNIT_SIZE + 2, UNIT_SIZE -4 , UNIT_SIZE -4);
+
+                    g.drawString("\u263A", (i * UNIT_SIZE) + 4, (j * UNIT_SIZE) + UNIT_SIZE - 7);
+
                 } else if (sneggySphere[i][j] == 300) {
-                    tempBlueCount++;
-                    g.setColor(new Color(0, 0, 120));
-                    g.fillRect(i * UNIT_SIZE, j * UNIT_SIZE, UNIT_SIZE, UNIT_SIZE);
+                    hollowRedCount++;
+                    g.setColor(Color.red);
+                    g.drawRect(i * UNIT_SIZE + 2, j * UNIT_SIZE + 2, UNIT_SIZE -4 , UNIT_SIZE -4);
 
                 } else if (sneggySphere[i][j] > 300) {
-                    tempBlueCount += (sneggySphere[i][j] / 300);
-                    g.setColor(Color.blue.brighter());
-                    g.fillOval(i * UNIT_SIZE, j * UNIT_SIZE, UNIT_SIZE, UNIT_SIZE);
-                    g.setColor(Color.black);
+                    hollowYellowCount += (sneggySphere[i][j] / 300);
+                    g.setColor(Color.yellow.brighter());
+                    g.drawOval(i * UNIT_SIZE + 2, j * UNIT_SIZE + 2, UNIT_SIZE -4 , UNIT_SIZE -4);
                     if (sneggySphere[i][j] < -9) {
                         g.drawString(String.valueOf(sneggySphere[i][j] / 300), (i * UNIT_SIZE) + 3, (j * UNIT_SIZE) + UNIT_SIZE - 7);
                     } else {
@@ -171,8 +181,7 @@ public class GamePanel extends JPanel implements ActionListener {
 
                 } else if (sneggySphere[i][j] > 0) {
                     g.setColor(Color.green);
-                    g.fillOval(i * UNIT_SIZE, j * UNIT_SIZE, UNIT_SIZE, UNIT_SIZE);
-                    g.setColor(Color.black);
+                    g.drawOval(i * UNIT_SIZE + 2, j * UNIT_SIZE + 2, UNIT_SIZE -4 , UNIT_SIZE -4);
                     if (sneggySphere[i][j] > 9) {
                         g.drawString(String.valueOf(sneggySphere[i][j]), (i * UNIT_SIZE) + 3, (j * UNIT_SIZE) + UNIT_SIZE - 7);
                     } else {
@@ -182,18 +191,29 @@ public class GamePanel extends JPanel implements ActionListener {
             }
         }
 
-        for (int i = 0; i < (tempBlueCount - tempRedCount); i++) { // if more blues reds - remove blues
+        for (int i = 0; i < (hollowRedCount - redCount); i++) { // if more blues reds - remove blues
             do {
                 tempAcross = random.nextInt(SQUARES_ACROSS);
                 tempDown = random.nextInt(SQUARES_DOWN);
             } while (sneggySphere[tempAcross][tempDown] < 300);
             sneggySphere[tempAcross][tempDown] -= 300;
         }
+        for (int i = 0; i < (hollowYellowCount - yellowCount); i++) { // if more purples then !'s remove purples
+            do {
+                tempAcross = random.nextInt(SQUARES_ACROSS);
+                tempDown = random.nextInt(SQUARES_DOWN);
+            } while (sneggySphere[tempAcross][tempDown] > 200 || sneggySphere[tempAcross][tempDown] < 100);
+            if (sneggySphere[tempAcross][tempDown] == 101){
+                sneggySphere[tempAcross][tempDown] = 0;
+            }else {
+                sneggySphere[tempAcross][tempDown] -= 1;
+            }
+        }
 
         if (waitingForNextLevel) {
-            difficulty = (int) (((tempRedCount + (level * 2)) / (level * 2)) * 100);
+            difficulty = (int) ((( (redCount + yellowCount)  / (level * 2)) / (level * 2)) * 100);
         } else {
-            difficulty = (int) ((tempRedCount / (level * 2)) * 100);
+            difficulty = (int) (( (redCount + yellowCount) / (level * 2)) * 100);
         }
     }
 
@@ -212,7 +232,7 @@ public class GamePanel extends JPanel implements ActionListener {
         //show GAME OVER
         g.setColor(Color.black);
         g.fillRect(15 * UNIT_SIZE, 10 * UNIT_SIZE, 18 * UNIT_SIZE, 3 * UNIT_SIZE);
-        g.setColor(Color.red);
+        g.setColor(Color.red.brighter());
         g.setFont(new Font("Terminal", Font.PLAIN, UNIT_SIZE * 3));
         FontMetrics metrics = getFontMetrics(g.getFont());
         g.drawString(message, (SCREEN_WIDTH - metrics.stringWidth(message)) / 2,
@@ -221,7 +241,7 @@ public class GamePanel extends JPanel implements ActionListener {
 
     public void drawGrid(Graphics g) {
 
-        g.setColor(Color.green.darker().darker().darker());
+        g.setColor(new Color(0,50,0));
         //draw Vertical Lines on board
         for (int i = 0; i <= SQUARES_ACROSS; i++) {
             g.drawLine(i * UNIT_SIZE, 0, i * UNIT_SIZE, SCREEN_HEIGHT);
@@ -286,8 +306,18 @@ public class GamePanel extends JPanel implements ActionListener {
                         "   Per Red Unit: " + withCommas.format(displayPerUnit * level * -1),
                 SCREEN_WIDTH / 3 + 50, SCREEN_HEIGHT
                         + (BOTTOM_PANEL / 2) + 20);
-        g.drawString("   Score: " + withCommas.format(score), SCREEN_WIDTH - 200, SCREEN_HEIGHT
-                + (BOTTOM_PANEL / 2) + 10);
+
+        g.setColor(Color.magenta);
+        g.drawString("Score: " + withCommas.format(score), SCREEN_WIDTH - 200, SCREEN_HEIGHT
+                + (BOTTOM_PANEL / 2) -10);
+
+        if (score > highScore){
+            highScore = score;
+            scoreLevel = displayLevel;
+        }
+        g.setFont(new Font("Terminal", Font.PLAIN, 18));
+        g.drawString("High Score: " + withCommas.format(highScore) + " - Level: " + scoreLevel, SCREEN_WIDTH - 200, SCREEN_HEIGHT
+                + (BOTTOM_PANEL / 2) + 20);
         g.setFont(new Font("Terminal", Font.PLAIN, 30));
         g.setColor(Color.green);
 
@@ -304,11 +334,20 @@ public class GamePanel extends JPanel implements ActionListener {
 
     public void newNumbers(int numberHit) {
 
-        if (numberHit / -100 > 0) { //  1 less body parts - less per unit - Yellow Circle /w  "!" sign
+        if (numberHit / -100 > 0) { //Exclaim ! is hit
+            //  1 less body parts - less per unit  square  /w  "!" sign
             sneggyBodyParts -= (numberHit / -100);
+            System.out.println(yellowCount);
+            if (yellowCount != 1) {
+                do {
+                    tempAcross = random.nextInt(SQUARES_ACROSS); //Add one ! to existing one
+                    tempDown = random.nextInt(SQUARES_DOWN);
+                } while (sneggySphere[tempAcross][tempDown] != -100);
+                sneggySphere[tempAcross][tempDown] -= 100;
+            }
             return;
         }
-        if (numberHit >= 300) { // blue is hit
+        if (numberHit >= 300) { // empty red is hit
             for (int i = 0; i < (Math.abs(numberHit) / 300); i++) {
                 do {
                     tempAcross = random.nextInt(SQUARES_ACROSS);
@@ -318,32 +357,51 @@ public class GamePanel extends JPanel implements ActionListener {
             }
             return;
         }
+
+        if ( (numberHit > 100) &&  (numberHit < 200) ) { // hollow yellow is hit - solid yellow removed or reduced
+                do {
+                    tempAcross = random.nextInt(SQUARES_ACROSS);
+                    tempDown = random.nextInt(SQUARES_DOWN);
+                } while (sneggySphere[tempAcross][tempDown] > -100);
+                sneggySphere[tempAcross][tempDown] += 100;
+            return;
+        }
+
         float bonus = (difficulty > 100) ? scoreMultiplierFloat * (difficulty / 100f) : scoreMultiplierFloat;
         if (numberHit < 0) {
             score += (bonus * numberHit * level);
         } else {
             score += (bonus * numberHit);
         }
+
         if (numberHit == level) {
             waitingForNextLevel = false;
-            for (int i = 0; i < level * 2; i++) {
-                for (i = 0; i < 2; i++) {
+            for (int i = 0; i < level; i++) { // one per level
                     do {
                         tempAcross = random.nextInt(SQUARES_ACROSS);
                         tempDown = random.nextInt(SQUARES_DOWN);
-                    } while (sneggySphere[tempAcross][tempDown] != 0);
+                    } while (sneggySphere[tempAcross][tempDown] != 0); // New solid yellow !
                     sneggySphere[tempAcross][tempDown] -= 100;
-                }
-                int tempCount = 0;
+                    do {
+                        tempAcross = random.nextInt(SQUARES_ACROSS); //add reds
+                        tempDown = random.nextInt(SQUARES_DOWN);
+                    } while (sneggySphere[tempAcross][tempDown] <= -99 || sneggySphere[tempAcross][tempDown] > 0);
+                    sneggySphere[tempAcross][tempDown]--;
+                    do {
+                        tempAcross = random.nextInt(SQUARES_ACROSS);
+                        tempDown = random.nextInt(SQUARES_DOWN);
+                        if (sneggySphere[tempAcross][tempDown] >= 100 && sneggySphere[tempAcross][tempDown] < 200){
+                            break;
+                        }
+                    } while (sneggySphere[tempAcross][tempDown] != 0); // Add purple to remove exlaim !
+                    if (sneggySphere[tempAcross][tempDown] == 0){
+                        sneggySphere[tempAcross][tempDown] += 101;
+                    } else if (sneggySphere[tempAcross][tempDown] < 200) {
+                        sneggySphere[tempAcross][tempDown] += 1;
+                    }
+
                 do {
-                    tempAcross = random.nextInt(SQUARES_ACROSS);
-                    tempDown = random.nextInt(SQUARES_DOWN);
-                } while (sneggySphere[tempAcross][tempDown] < -99 || sneggySphere[tempAcross][tempDown] == 0);
-                sneggySphere[tempAcross][tempDown] -= 100;
-            }
-            for (int i = 0; i < (level * 2); i++) {
-                do {
-                    tempAcross = random.nextInt(SQUARES_ACROSS);
+                    tempAcross = random.nextInt(SQUARES_ACROSS); //Add good red / empty red to remove solid red
                     tempDown = random.nextInt(SQUARES_DOWN);
                     if (sneggySphere[tempAcross][tempDown] >= 300) {
                         break;
@@ -352,7 +410,8 @@ public class GamePanel extends JPanel implements ActionListener {
                 sneggySphere[tempAcross][tempDown] += 300;
             }
         }
-        if (numberHit == 1) {
+
+        if (numberHit == 1) { //green square
             if (level == 1 && !gameStarted) {
                 do {
                     tempAcross = random.nextInt(SQUARES_ACROSS);
@@ -362,30 +421,21 @@ public class GamePanel extends JPanel implements ActionListener {
                 numbersLeft++;
                 gameStarted = true;
             }
-            numbersLeft--;
+
+            numbersLeft--; // all greens removed on curent level
             if (numbersLeft == 0) {
                 level++;
-                sneggyBodyParts += level;
                 numbersLeft = level;
                 newLevel(numbersLeft);
                 return;
             }
         }
-        if (numberHit < 0) {
+        if (numberHit < 0) {  //red square -1  (or circle number -1 to -99
             for (int i = 0; i < (Math.abs(numberHit)); i++) {
                 do {
                     tempAcross = random.nextInt(SQUARES_ACROSS);
                     tempDown = random.nextInt(SQUARES_DOWN);
                 } while (sneggySphere[tempAcross][tempDown] <= -99 || sneggySphere[tempAcross][tempDown] >= 0);
-                sneggySphere[tempAcross][tempDown]--;
-            }
-        }
-        if (numberHit == level) {
-            for (int i = 0; i < (Math.abs(numberHit) * 2); i++) {
-                do {
-                    tempAcross = random.nextInt(SQUARES_ACROSS);
-                    tempDown = random.nextInt(SQUARES_DOWN);
-                } while (sneggySphere[tempAcross][tempDown] <= -99 || sneggySphere[tempAcross][tempDown] > 0);
                 sneggySphere[tempAcross][tempDown]--;
             }
         }
