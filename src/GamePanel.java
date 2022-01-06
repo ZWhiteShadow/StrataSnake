@@ -39,7 +39,6 @@ public class GamePanel extends JPanel implements ActionListener {
     int tempBlueCount;
     int difficulty;
     boolean waitingForNextLevel;
-    int redSquares;
 
     GamePanel() {
         random = new Random();
@@ -56,7 +55,7 @@ public class GamePanel extends JPanel implements ActionListener {
         tempBlueCount = 0;
         difficulty = 0;
         direction = 'D';
-        sneggyBodyParts = 3;
+        sneggyBodyParts = 11;
         sneggySpeed = 125;
         score = 0;
         running = true;
@@ -78,6 +77,7 @@ public class GamePanel extends JPanel implements ActionListener {
         drawNumbers(g);
         drawSneggy(g);
         if (!running || sneggyBodyParts <= 1 || score < 0) {
+            running = false;
             gameOver(g, "Sneggy Died!");
         }
         drawGrid(g);
@@ -91,11 +91,10 @@ public class GamePanel extends JPanel implements ActionListener {
         g.setFont(new Font("Terminal", Font.PLAIN, 16));
         tempRedCount = 0;
         tempBlueCount = 0;
-        redSquares = 0;
         for (int i = 0; i < SQUARES_ACROSS; i++) {
             for (int j = 0; j < SQUARES_DOWN; j++) {
-                if (sneggySphere[i][j] == 100 || sneggySphere[i][j] == 200 || (sneggySphere[i][j] / 300 == Math.round((float) sneggySphere[i][j] / 300)) ||
-                        sneggySphere[i][j] == -100 || sneggySphere[i][j] == -200 || (sneggySphere[i][j] < 0 && sneggySphere[i][j] > -99) ||
+                if ((sneggySphere[i][j] / 300 == Math.round((float) sneggySphere[i][j] / 300)) ||
+                        (sneggySphere[i][j] % -100 == 0) || (sneggySphere[i][j] < 0 && sneggySphere[i][j] > -99) ||
                         (sneggySphere[i][j] > 0 && sneggySphere[i][j] < 99) || sneggySphere[i][j] == 0) {
                 } else {
                     System.out.println("ERROR: (X: " + i + " Y: " + j + " ) " + sneggySphere[i][j]);
@@ -117,21 +116,23 @@ public class GamePanel extends JPanel implements ActionListener {
                         g.drawString(String.valueOf(sneggySphere[i][j]), (i * UNIT_SIZE) + 8, (j * UNIT_SIZE) + UNIT_SIZE - 7);
                     }
 
-                } else if (sneggySphere[i][j] == -200) {
-                    g.setColor(Color.yellow.brighter());
+                } else if (sneggySphere[i][j] <= -100) { // loss of a limited number of body parts
+                    if (sneggyBodyParts - (sneggySphere[i][j] / -100) <= 1) {
+                        g.setColor(new Color(255, 0, 0));
+                    } else {
+                        if (sneggySphere[i][j] == -100) {
+                            g.setColor(Color.yellow.brighter());
+                        }else {
+                            g.setColor(new Color(255,100,0));
+                        }
+                    }
                     g.fillRect(i * UNIT_SIZE, j * UNIT_SIZE, UNIT_SIZE, UNIT_SIZE);
                     g.setColor(Color.black);
-                    g.drawString("-", (i * UNIT_SIZE) + 7, (j * UNIT_SIZE) + UNIT_SIZE - 3);
+                    g.drawString("!", (i * UNIT_SIZE) + 7, (j * UNIT_SIZE) + UNIT_SIZE - 3);
 
-                } else if (sneggySphere[i][j] == -100) {
-                    g.setColor(Color.yellow.brighter());
-                    g.fillOval(i * UNIT_SIZE, j * UNIT_SIZE, UNIT_SIZE, UNIT_SIZE);
-                    g.setColor(Color.black);
-                    g.drawString("-", (i * UNIT_SIZE) + 7, (j * UNIT_SIZE) + UNIT_SIZE - 3);
-
-                } else if (sneggySphere[i][j] < -1 && sneggySphere[i][j] > -100) {
+                } else if (sneggySphere[i][j] < -1 && sneggySphere[i][j] >= -99) {
                     tempRedCount -= sneggySphere[i][j];
-                    g.setColor(Color.red.brighter());
+                    g.setColor(Color.red.brighter().brighter());
                     g.fillOval(i * UNIT_SIZE, j * UNIT_SIZE, UNIT_SIZE, UNIT_SIZE);
                     g.setColor(Color.black);
                     if (sneggySphere[i][j] < -9) {
@@ -143,30 +144,22 @@ public class GamePanel extends JPanel implements ActionListener {
                 } else if (sneggySphere[i][j] < 0) {
                     g.setColor(new Color(120, 0, 0));
                     g.fillRect(i * UNIT_SIZE, j * UNIT_SIZE, UNIT_SIZE, UNIT_SIZE);
+                    g.setColor(Color.white);
+                    g.drawString(String.valueOf(sneggySphere[i][j] * -1), (i * UNIT_SIZE) + 8, (j * UNIT_SIZE) + UNIT_SIZE - 7);
                     tempRedCount++;
 
                 } else if (sneggySphere[i][j] == 1) {
                     g.setColor(Color.green.brighter());
                     g.fillRect(i * UNIT_SIZE, j * UNIT_SIZE, UNIT_SIZE, UNIT_SIZE);
-                } else if (sneggySphere[i][j] == 100) {
-                    g.setColor(Color.green.darker());
-                    g.fillOval(i * UNIT_SIZE, j * UNIT_SIZE, UNIT_SIZE, UNIT_SIZE);
                     g.setColor(Color.black);
-                    g.drawString("+", (i * UNIT_SIZE) + 2, (j * UNIT_SIZE) + UNIT_SIZE);
-
-                } else if (sneggySphere[i][j] == 200) {
-                    g.setColor(Color.green.darker());
-                    g.fillRect(i * UNIT_SIZE, j * UNIT_SIZE, UNIT_SIZE, UNIT_SIZE);
-                    g.setColor(Color.black);
-                    g.drawString("+", (i * UNIT_SIZE) + 2, (j * UNIT_SIZE) + UNIT_SIZE);
-
+                    g.drawString(String.valueOf(sneggySphere[i][j]), (i * UNIT_SIZE) + 8, (j * UNIT_SIZE) + UNIT_SIZE - 7);
                 } else if (sneggySphere[i][j] == 300) {
                     tempBlueCount++;
                     g.setColor(new Color(0, 0, 120));
                     g.fillRect(i * UNIT_SIZE, j * UNIT_SIZE, UNIT_SIZE, UNIT_SIZE);
 
                 } else if (sneggySphere[i][j] > 300) {
-                    tempBlueCount += (sneggySphere[i][j] /300);
+                    tempBlueCount += (sneggySphere[i][j] / 300);
                     g.setColor(Color.blue.brighter());
                     g.fillOval(i * UNIT_SIZE, j * UNIT_SIZE, UNIT_SIZE, UNIT_SIZE);
                     g.setColor(Color.black);
@@ -198,23 +191,21 @@ public class GamePanel extends JPanel implements ActionListener {
         }
 
         if (waitingForNextLevel) {
-            difficulty = (int) (((tempRedCount + (level  * 2)) / (level * 2)) * 100);
-        }else{
+            difficulty = (int) (((tempRedCount + (level * 2)) / (level * 2)) * 100);
+        } else {
             difficulty = (int) ((tempRedCount / (level * 2)) * 100);
         }
     }
 
     // set snake named SNEGGY
     public void drawSneggy(Graphics g) {
+        if (sneggyBodyParts > 1) {
+            int colorShift = 255 / sneggyBodyParts;
             for (int i = 0; i < sneggyBodyParts; i++) {
-                if (i == 0) {
-                    g.setColor(Color.GREEN.darker());
-                    g.fillRect(x[i] * UNIT_SIZE, y[i] * UNIT_SIZE, UNIT_SIZE, UNIT_SIZE);
-                } else {
-                    g.setColor(Color.green);
-                    g.fillRect(x[i] * UNIT_SIZE, y[i] * UNIT_SIZE, UNIT_SIZE, UNIT_SIZE);
-                }
+                g.setColor(new Color(255 - (colorShift * i), 0, 255 - (colorShift * i)));
+                g.fillRect(x[i] * UNIT_SIZE, y[i] * UNIT_SIZE, UNIT_SIZE, UNIT_SIZE);
             }
+        }
     }
 
     public void gameOver(Graphics g, String message) {
@@ -230,14 +221,24 @@ public class GamePanel extends JPanel implements ActionListener {
 
     public void drawGrid(Graphics g) {
 
-        g.setColor(Color.darkGray);
+        g.setColor(Color.green.darker().darker().darker());
         //draw Vertical Lines on board
-        for (int i = 0; i <= SCREEN_WIDTH / UNIT_SIZE; i++) {
+        for (int i = 0; i <= SQUARES_ACROSS; i++) {
             g.drawLine(i * UNIT_SIZE, 0, i * UNIT_SIZE, SCREEN_HEIGHT);
         }
         //Draw Horizontal
-        for (int i = 0; i <= SCREEN_HEIGHT / UNIT_SIZE; i++) {
+        for (int i = 0; i <= SQUARES_DOWN; i++) {
             g.drawLine(0, i * UNIT_SIZE, SCREEN_WIDTH, i * UNIT_SIZE);
+        }
+        //Draw Middle circles
+        for (int i = 0; i <= SQUARES_ACROSS; i++) {
+            for (int j = 0; j <= SQUARES_DOWN; j++) {
+                if (((j + i) / 2) % 2 == 0) {
+                    g.fillOval(i * UNIT_SIZE - 3, j * UNIT_SIZE - 3, 6, 6);
+                } else {
+                    g.fillOval(i * UNIT_SIZE - 5, j * UNIT_SIZE - 5, 10, 10);
+                }
+            }
         }
     }
 
@@ -258,31 +259,38 @@ public class GamePanel extends JPanel implements ActionListener {
         g.fillRect(0, SCREEN_HEIGHT, SCREEN_WIDTH + SIDE_FOR_SCORE, BOTTOM_PANEL);
 
         // formatting
-        g.setColor(Color.green);
+        g.setColor(Color.magenta);
         DecimalFormat withCommas = new DecimalFormat("#,###");
         DecimalFormat decimal = new DecimalFormat("#,###.##");
         g.setFont(new Font("Terminal", Font.PLAIN, 24));
 
         // Game Name
-        g.drawString("            Introducing \"Sneggy\" In:", 0, SCREEN_HEIGHT + (BOTTOM_PANEL / 2) - 25);
+        g.drawString("            Introducing \"Sneggy\" In:", 0, SCREEN_HEIGHT + (BOTTOM_PANEL / 2) - 15);
         g.setFont(new Font("Terminal", Font.PLAIN, (int) (UNIT_SIZE * 1.5)));
-        g.drawString("       StrataSnake \uD83D\uDC0D", 0, SCREEN_HEIGHT + (BOTTOM_PANEL / 2) + 15);
+        g.drawString("       StrataSnake \uD83D\uDC0D", 0, SCREEN_HEIGHT + (BOTTOM_PANEL / 2) + 25);
 
         displayLevel = level + ((level - numbersLeft) / level);
-        int displaySpeed = (int) (125 - sneggySpeed) / 5;
-        int displayPerUnit = (difficulty > 100) ? (int) (scoreMultiplierFloat * (difficulty / 100f)) : (int) scoreMultiplierFloat;
+        int displaySpeed = (int) ((120 - sneggySpeed) / 5) + 1;
+        int displayPerUnit = (int) ((difficulty > 100) ? (int) (scoreMultiplierFloat * (difficulty / 100f)) * (float) (125 / sneggySpeed) : (int) scoreMultiplierFloat * (float) (125 / sneggySpeed));
+
         //sneggySpeed / Per Unit /  Score
         g.setFont(new Font("Terminal", Font.PLAIN, 24));
         g.setColor(Color.green);
         g.drawString("Level: " + decimal.format(displayLevel) +
-                        "   Difficulty: " + difficulty + "%" +
-                "   Speed: " + displaySpeed +
-                "   Length: " + sneggyBodyParts +
-                "   Per Unit: " + withCommas.format(displayPerUnit) +
-                "   Score: " + withCommas.format(score), SCREEN_WIDTH / 3, SCREEN_HEIGHT
-                + (BOTTOM_PANEL / 2) + 5);
+                "   Difficulty: " + difficulty + "%" +
+                "   Speed: " + withCommas.format(displaySpeed) +
+                "   Length: " + (sneggyBodyParts - 1), (SCREEN_WIDTH / 3) + 20, SCREEN_HEIGHT
+                + (BOTTOM_PANEL / 2) - 10);
+
+        g.drawString("   Per Green Unit: " + withCommas.format(displayPerUnit) +
+                        "   Per Red Unit: " + withCommas.format(displayPerUnit * level * -1),
+                SCREEN_WIDTH / 3 + 50, SCREEN_HEIGHT
+                        + (BOTTOM_PANEL / 2) + 20);
+        g.drawString("   Score: " + withCommas.format(score), SCREEN_WIDTH - 200, SCREEN_HEIGHT
+                + (BOTTOM_PANEL / 2) + 10);
         g.setFont(new Font("Terminal", Font.PLAIN, 30));
         g.setColor(Color.green);
+
     }
 
     public void newLevel(float numberToDisplay) {
@@ -296,28 +304,8 @@ public class GamePanel extends JPanel implements ActionListener {
 
     public void newNumbers(int numberHit) {
 
-        if (numberHit == 100) { // slow down
-            if (sneggySpeed > 0) {
-                sneggySpeed -= 5;
-                newSpeed();
-                scoreMultiplierFloat *= 1.106f; //score starts at 100 goes up to 750
-                return;
-            }
-        }
-        if (numberHit == -100) { // speed up
-            sneggySpeed += 5;
-            newSpeed();
-            scoreMultiplierFloat /= 1.106f;
-            return;
-        }
-        if (numberHit == 200) { // 1 extra body parts - less per unit - Yellow Square /w  "-" sign
-            sneggyBodyParts++;
-            scoreMultiplierFloat *= 1.106f;
-            return;
-        }
-        if (numberHit == -200) { //  1 less body parts - less per unit - Yellow Square /w  "-" sign
-            scoreMultiplierFloat /= 1.106f;
-            sneggyBodyParts--;
+        if (numberHit / -100 > 0) { //  1 less body parts - less per unit - Yellow Circle /w  "!" sign
+            sneggyBodyParts -= (numberHit / -100);
             return;
         }
         if (numberHit >= 300) { // blue is hit
@@ -330,19 +318,28 @@ public class GamePanel extends JPanel implements ActionListener {
             }
             return;
         }
-        float bonus = (difficulty > 100) ? scoreMultiplierFloat * (difficulty / 100f) :scoreMultiplierFloat;
-        if (numberHit == 1 && gameStarted) {
-            score += (bonus * sneggySphere[x[0]][y[0]]);
+        float bonus = (difficulty > 100) ? scoreMultiplierFloat * (difficulty / 100f) : scoreMultiplierFloat;
+        if (numberHit < 0) {
+            score += (bonus * numberHit * level);
+        } else {
+            score += (bonus * numberHit);
         }
-
         if (numberHit == level) {
             waitingForNextLevel = false;
-            for (int i = -2; i < 3; i++) {
+            for (int i = 0; i < level * 2; i++) {
+                for (i = 0; i < 2; i++) {
+                    do {
+                        tempAcross = random.nextInt(SQUARES_ACROSS);
+                        tempDown = random.nextInt(SQUARES_DOWN);
+                    } while (sneggySphere[tempAcross][tempDown] != 0);
+                    sneggySphere[tempAcross][tempDown] -= 100;
+                }
+                int tempCount = 0;
                 do {
                     tempAcross = random.nextInt(SQUARES_ACROSS);
                     tempDown = random.nextInt(SQUARES_DOWN);
-                } while (sneggySphere[tempAcross][tempDown] != 0);
-                sneggySphere[tempAcross][tempDown] += (i * 100);
+                } while (sneggySphere[tempAcross][tempDown] < -99 || sneggySphere[tempAcross][tempDown] == 0);
+                sneggySphere[tempAcross][tempDown] -= 100;
             }
             for (int i = 0; i < (level * 2); i++) {
                 do {
@@ -367,24 +364,14 @@ public class GamePanel extends JPanel implements ActionListener {
             }
             numbersLeft--;
             if (numbersLeft == 0) {
-                for (int i = 0; i < SQUARES_ACROSS; i++) {
-                    for (int j = 0; j < SQUARES_DOWN; j++) {
-                        if (sneggySphere[i][j] == 100 ||
-                                sneggySphere[i][j] == 200 ||
-                                sneggySphere[i][j] == -100 ||
-                                sneggySphere[i][j] == -200) {
-                            sneggySphere[i][j] = 0;
-                        }
-                    }
-                }
                 level++;
+                sneggyBodyParts += level;
                 numbersLeft = level;
                 newLevel(numbersLeft);
                 return;
             }
         }
-
-        if (numberHit < 0 || redSquares >= 2) {
+        if (numberHit < 0) {
             for (int i = 0; i < (Math.abs(numberHit)); i++) {
                 do {
                     tempAcross = random.nextInt(SQUARES_ACROSS);
@@ -409,14 +396,14 @@ public class GamePanel extends JPanel implements ActionListener {
                 do {
                     tempAcross = random.nextInt(SQUARES_ACROSS);
                     tempDown = random.nextInt(SQUARES_DOWN);
-                } while (sneggySphere[tempAcross][tempDown] < 0);
+                } while (sneggySphere[tempAcross][tempDown] != 0);
                 sneggySphere[tempAcross][tempDown] += numberToSplit;
                 tempNumberToDisplay = tempNumberToDisplay - numberToSplit;
             }
             do {
                 tempAcross = random.nextInt(SQUARES_ACROSS);
                 tempDown = random.nextInt(SQUARES_DOWN);
-            } while (sneggySphere[tempAcross][tempDown] < 0);
+            } while (sneggySphere[tempAcross][tempDown] != 0);
             sneggySphere[tempAcross][tempDown] += tempNumberToDisplay;
         }
     }
@@ -433,7 +420,6 @@ public class GamePanel extends JPanel implements ActionListener {
     public void actionPerformed(ActionEvent e) {
         if (running) {
             move();
-            checkCollisions();
         }
         repaint();
     }
@@ -462,7 +448,6 @@ public class GamePanel extends JPanel implements ActionListener {
             }
             case '1' -> {  // UP Left
                 if (!step) {
-                    y[0] = y[0] + 1;
                     step = true;
                 } else {
                     x[0] = x[0] - 1;
@@ -488,24 +473,25 @@ public class GamePanel extends JPanel implements ActionListener {
                 }
             }
         }
-        try {
-            if (sneggySphere[x[0]][y[0]] != 0) {
-                newNumbers(sneggySphere[x[0]][y[0]]);
-            }
-            sneggySphere[x[0]][y[0]] = 0;
-        } catch (Exception e) {
-            timer.stop();
-            running = false;
-        }
-    }
 
-    public void checkCollisions() {
-        for (int i = sneggyBodyParts; i > 0; i--) {
-            if ((x[0] == x[i]) && (y[0] == y[i])) {
-                running = false;
-                break;
-            }
+        //Loop around sides
+        if (x[0] < 0) {
+            x[0] += SQUARES_ACROSS;
         }
+        if (x[0] >= SQUARES_ACROSS) {
+            x[0] = 0;
+        }
+        if (y[0] < 0) {
+            y[0] += SQUARES_DOWN;
+        }
+        if (y[0] >= SQUARES_DOWN) {
+            y[0] = 0;
+        }
+
+        if (sneggySphere[x[0]][y[0]] != 0) {
+            newNumbers(sneggySphere[x[0]][y[0]]);
+        }
+        sneggySphere[x[0]][y[0]] = 0;
     }
 
     public class MyKeyAdapter extends KeyAdapter {
@@ -513,37 +499,33 @@ public class GamePanel extends JPanel implements ActionListener {
 
         public void keyPressed(KeyEvent e) {
             switch (e.getKeyCode()) {
+                case KeyEvent.VK_A:
                 case KeyEvent.VK_LEFT:
                 case KeyEvent.VK_NUMPAD4:
-                    if ((direction != 'R') && (direction != '9') && (direction != '3')) {
-                        direction = 'L';
-                    }
+                    direction = 'L';
                     break;
 
                 case KeyEvent.VK_RIGHT:
+                case KeyEvent.VK_D:
                 case KeyEvent.VK_NUMPAD6:
-                    if ((direction != 'L') && (direction != '7') && (direction != '1')) {
-                        direction = 'R';
-                    }
+                    direction = 'R';
                     break;
 
                 case KeyEvent.VK_UP:
+                case KeyEvent.VK_W:
                 case KeyEvent.VK_NUMPAD8:
-                    if (direction != 'D' && (direction != '1') && (direction != '3')) {
-                        direction = 'U';
-                    }
+                    direction = 'U';
                     break;
 
                 case KeyEvent.VK_DOWN:
+                case KeyEvent.VK_X:
                 case KeyEvent.VK_NUMPAD2:
-                    if (direction != 'U' && (direction != '7') && (direction != '9')) {
-                        direction = 'D';
-                    }
+                    direction = 'D';
                     break;
 
-                case KeyEvent.VK_ENTER: //pause game
+                case KeyEvent.VK_ENTER: //pause game for testing
                     if (timer.isRunning()) {
-                        sneggySpeed = 125;
+                        sneggySpeed = 120;
                         newSpeed();
                         timer.stop();
                     } else {
@@ -558,63 +540,51 @@ public class GamePanel extends JPanel implements ActionListener {
 
                 //Diagonals!
                 case KeyEvent.VK_NUMPAD7:
+                case KeyEvent.VK_Q:
                 case KeyEvent.VK_HOME:
-                    if (direction == 'D') {
-                        direction = 'L';
-                        break;
-                    }
-                    if (direction == 'R') {
-                        direction = 'U';
-                        break;
-                    }
-                    if (direction != '3') {
-                        direction = '7';
-                    }
+                    direction = '7';
                     break;
 
                 case KeyEvent.VK_NUMPAD9:
+                case KeyEvent.VK_E:
                 case KeyEvent.VK_PAGE_UP:
-                    if (direction == 'D') {
-                        direction = 'R';
-                        break;
-                    }
-                    if (direction == 'L') {
-                        direction = 'U';
-                        break;
-                    }
-                    if (direction != '1') {
-                        direction = '9';
-                    }
+                    direction = '9';
                     break;
 
                 case KeyEvent.VK_NUMPAD1:
+                case KeyEvent.VK_Z:
                 case KeyEvent.VK_END:
-                    if (direction == 'U') {
-                        direction = 'L';
-                        break;
-                    }
-                    if (direction == 'R') {
-                        direction = 'D';
-                        break;
-                    }
-                    if (direction != '9') {
-                        direction = '1';
-                    }
+                    direction = '1';
                     break;
 
                 case KeyEvent.VK_NUMPAD3:
+                case KeyEvent.VK_C:
                 case KeyEvent.VK_PAGE_DOWN:
-                    if (direction == 'U') {
-                        direction = 'R';
-                        break;
+                    direction = '3';
+                    break;
+
+                case KeyEvent.VK_SUBTRACT:
+                case KeyEvent.VK_MINUS:
+                case KeyEvent.VK_SHIFT:
+                    if (sneggySpeed < 250) { // As low as 50 at base difficulty 100%
+                        sneggySpeed += 5;
+                        newSpeed();
                     }
-                    if (direction == 'L') {
-                        direction = 'D';
-                        break;
+                    break;
+
+                case KeyEvent.VK_ADD:
+                case KeyEvent.VK_PLUS:
+                case KeyEvent.VK_CONTROL:
+                    if (sneggySpeed > 25) { // AS high as 500 base at base difficulty 100%
+                        sneggySpeed -= 5;
+                        newSpeed();
                     }
-                    if (direction != '7') {
-                        direction = '3';
-                    }
+                    break;
+
+                case KeyEvent.VK_NUMPAD5:
+                case KeyEvent.VK_S:
+                    sneggySpeed = 125;
+                    newSpeed();
                     break;
             }
         }
