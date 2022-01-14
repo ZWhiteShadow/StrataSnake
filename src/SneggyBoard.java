@@ -2,12 +2,20 @@ public class SneggyBoard
 {
     public String type;
     public int value;
-    public int[] xy;
+    private int[] xy;
 
     public SneggyBoard(String type, int value, int[] xy) {
         this.type = type;
         this.value = value;
-        this.xy = xy;
+        this.setXy(xy);
 
+    }
+
+    public int[] getXy() {
+        return xy;
+    }
+
+    public void setXy(int[] xy) {
+        this.xy = xy;
     }
 }
