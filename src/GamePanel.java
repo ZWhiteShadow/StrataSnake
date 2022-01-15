@@ -1,21 +1,19 @@
 import javax.swing.*;
+import javax.swing.Timer;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.text.DecimalFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Objects;
-import java.util.Random;
+import java.util.*;
 
 public class GamePanel extends JPanel implements ActionListener {
     static final int SCREEN_WIDTH = 1200;
-    static final int SIDE_FOR_SCORE = 150;
+    static final int SIDE_FOR_SCORE = 250;
     static final int BOTTOM_PANEL = 100;
     static final int SCREEN_HEIGHT = 600;
-    static final int UNIT_SIZE = 25;
+    static int UNIT_SIZE = 25;
     static final int GAME_UNITS = (SCREEN_WIDTH * SCREEN_HEIGHT) / UNIT_SIZE;
     static final int SQUARES_ACROSS = GAME_UNITS / SCREEN_HEIGHT;
     static final int SQUARES_DOWN = GAME_UNITS / SCREEN_WIDTH;
@@ -25,6 +23,7 @@ public class GamePanel extends JPanel implements ActionListener {
     double sneggySpeed; //How fast game is running
     float scoreMultiplierFloat; //score bonus
     int score;
+    int lastScore;
     float sneggyBodyParts;
     float numbersLeft; // units left before entering next level
     float displayLevel; // level user is on including part level 1.3 ect
@@ -38,15 +37,19 @@ public class GamePanel extends JPanel implements ActionListener {
     Timer timer;
     Random random;
     boolean step = false; // alternating pattern used for diagonals
-
+    DecimalFormat withCommas = new DecimalFormat("#,###");
+    DecimalFormat decimal = new DecimalFormat("#,###.##");
     int difficulty; // used for bonus - based on number of negatives on board vs amount normal for level
     boolean waitingForNextLevel; // is the white level number on board - are we waiting to hit it
-    int highScore; // highest score on game instance
-    float scoreLevel; // level at which got the highest score
+    double[][] highScoresArray = new double[22][3];
+    int gameHighScore;
+    float negitiveLevel;
+    int nextLevel;
+    int attempt = 0;
     int displayPerUnit; // shown number received for hitting positive units
     double displayDanger; // how much of the board is full
-
     ArrayList<SneggyBoard> squares = new ArrayList<>(); // list holding board dimensions and what squares are where
+
     GamePanel() {
         random = new Random(); //setup random numbers
         //full board size
@@ -64,11 +67,16 @@ public class GamePanel extends JPanel implements ActionListener {
                 squares.add(new SneggyBoard("E", 0, new int[]{i, j})); //E for empty
             }
         }
+        negitiveLevel = 0;
+        nextLevel = 0;
+        attempt += 1;
         difficulty = 0;
         direction = 'D';
         sneggyBodyParts = 11;
         sneggySpeed = 125;
         score = 0;
+        lastScore = 0;
+        gameHighScore = 0;
         running = true;
         scoreMultiplierFloat = 100.0f;
         x = new int[GAME_UNITS];
@@ -365,11 +373,31 @@ public class GamePanel extends JPanel implements ActionListener {
 
     //set side for high score table
     public void drawHighScore(Graphics g) {
-        g.setColor(Color.lightGray);
+        g.setColor(Color.darkGray);
         g.fillRect(SCREEN_WIDTH, 0, SCREEN_WIDTH + SIDE_FOR_SCORE, SCREEN_HEIGHT);
-        g.setColor(Color.black);
-        g.setFont(new Font("Terminal", Font.PLAIN, UNIT_SIZE * 3 / 4));
-        g.drawString("High Scores:", SCREEN_WIDTH + (SIDE_FOR_SCORE / 8), UNIT_SIZE);
+        for (int i = 0; i <= SQUARES_ACROSS; i++) {
+            if (i % 2 == 0){
+                g.setColor(new Color(0,100,0));
+            } else {
+                g.setColor(new Color(100,0,100));
+            }
+            g.fillRect(SCREEN_WIDTH , (26 * i) + 61,SIDE_FOR_SCORE,26);
+        }
+        g.setColor(Color.white);
+        g.setFont(new Font("Terminal", Font.PLAIN, 20));
+        int y = UNIT_SIZE;
+        g.drawString("High Score List:",  SCREEN_WIDTH + (SIDE_FOR_SCORE / 3) - 30, y);
+        g.drawString("Score:" ,  SCREEN_WIDTH + UNIT_SIZE,y + 30);
+        g.drawString("Level:" ,  SCREEN_WIDTH + (UNIT_SIZE * 7), y + 30);
+            for (int i = highScoresArray.length - 1; i > 0; i--) { //only display 20
+//                if (highScoresArray[i][1] > 0 && highScoresArray[i][0] > 0) {
+                    y += g.getFontMetrics().getHeight(); //go down one row with each new score
+                    g.drawString(withCommas.format(highScoresArray[i][0]), // score
+                            SCREEN_WIDTH + UNIT_SIZE, y + 30 ); //display next to each other
+                    g.drawString(decimal.format(highScoresArray[i][1]), // level
+                            SCREEN_WIDTH + (UNIT_SIZE * 7), y + 30);
+//                }
+            }
     }
 
     //fill in bottom
@@ -377,48 +405,49 @@ public class GamePanel extends JPanel implements ActionListener {
 
         //draw panel
         g.setColor(Color.darkGray);
-        g.fillRect(0, SCREEN_HEIGHT, SCREEN_WIDTH + SIDE_FOR_SCORE, BOTTOM_PANEL);
+        g.fillRect(0, SCREEN_HEIGHT + 8, SCREEN_WIDTH + SIDE_FOR_SCORE, BOTTOM_PANEL);
 
         // formatting
         g.setColor(Color.magenta);
-        DecimalFormat withCommas = new DecimalFormat("#,###");
-        DecimalFormat decimal = new DecimalFormat("#,###.#");
         g.setFont(new Font("Terminal", Font.PLAIN, 20));
 
         // Game Name
-        g.drawString("            Introducing \"Sneggy\" In:", 0, SCREEN_HEIGHT + (BOTTOM_PANEL / 2) - 15);
+        g.drawString("Introducing \"Sneggy\" In:", + 75, SCREEN_HEIGHT + (BOTTOM_PANEL / 2) - 15);
         g.setFont(new Font("Terminal", Font.PLAIN, (int) (UNIT_SIZE * 1.5)));
-        g.drawString("       StrataSnake \uD83D\uDC0D", 0, SCREEN_HEIGHT + (BOTTOM_PANEL / 2) + 25);
+        g.drawString("StrataSnake \uD83D\uDC0D", + 50, SCREEN_HEIGHT + (BOTTOM_PANEL / 2) + 25);
 
-        displayLevel = level + ((level - numbersLeft) / level);
         int displaySpeed = (int) ((125 / sneggySpeed) * 100);
         displayPerUnit = (int) ((difficulty > 100) ? (int) (scoreMultiplierFloat * (difficulty / 100f)) * (float) (125 / sneggySpeed) : (int) scoreMultiplierFloat * (float) (125 / sneggySpeed));
+        displayLevel = level + ((level - numbersLeft) / level);
 
         //sneggySpeed / Per Unit /  Score
         g.setFont(new Font("Terminal", Font.PLAIN, 20));
         g.setColor(Color.green);
         g.drawString("Level: " + decimal.format(displayLevel) +
                 "   Danger: " + decimal.format(displayDanger) + "%" +
-                "   Speed: " + withCommas.format(displaySpeed) + "%" +
-                "   Length: " + decimal.format(sneggyBodyParts - 1), (SCREEN_WIDTH / 3) + 40, SCREEN_HEIGHT
-                + (BOTTOM_PANEL / 2) - 10);
+                "   Speed: " + withCommas.format(displaySpeed) + "%",
+                (SCREEN_WIDTH / 3) + 40, SCREEN_HEIGHT + (BOTTOM_PANEL / 2) - 15);
 
         g.drawString("   Per Green Unit: " + withCommas.format(displayPerUnit) +
                         "   Per Red Unit: " + withCommas.format(displayPerUnit * level * -1),
-                (SCREEN_WIDTH / 3) + 60, SCREEN_HEIGHT
-                        + (BOTTOM_PANEL / 2) + 20);
+                (SCREEN_WIDTH / 3) + 20, SCREEN_HEIGHT
+                        + (BOTTOM_PANEL / 2) + 10);
+
+        g.drawString("Length: " + decimal.format(sneggyBodyParts - 1) +
+                "   Regress: " + decimal.format(negitiveLevel),
+                (SCREEN_WIDTH / 3) + 125, SCREEN_HEIGHT + (BOTTOM_PANEL / 2) + 35);
 
         g.setColor(Color.magenta);
-        g.drawString("Score: " + withCommas.format(score), SCREEN_WIDTH - 200, SCREEN_HEIGHT
+        g.drawString("Current Score: " + withCommas.format(score), SCREEN_WIDTH - 250, SCREEN_HEIGHT
                 + (BOTTOM_PANEL / 2) - 10);
+        g.drawString("Game " + attempt + " High Score: " +
+                withCommas.format(score), SCREEN_WIDTH - 250, SCREEN_HEIGHT + (BOTTOM_PANEL / 2) + 20);
 
-        if (score > highScore) {
-            highScore = score;
-            scoreLevel = displayLevel;
-        }
-        g.setFont(new Font("Terminal", Font.PLAIN, 18));
-        g.drawString("High Score: " + withCommas.format(highScore) + " - Level: " + decimal.format(scoreLevel), SCREEN_WIDTH - 200, SCREEN_HEIGHT
-                + (BOTTOM_PANEL / 2) + 20);
+            new Comparator<String[]>() {
+                public int compare(String[] first, String[] second) {
+                    return first[1].compareTo(second[1]);
+                }
+            };
         g.setFont(new Font("Terminal", Font.PLAIN, 30));
         g.setColor(Color.green);
 
@@ -447,7 +476,7 @@ public class GamePanel extends JPanel implements ActionListener {
             return;
         }
 
-        if (numberHit / -100 > 0) { //solid yellow is hit -100 multiples
+        if (numberHit / -100 > 0) { //solid yellow is hit -100 multiples SY
             sneggyBodyParts -= (numberHit / -100f); // loss of body parts based on speed.
             if ((countType("SY") == 0) || (numberHit / -100 == 99)) {
                 changeSquare("HY", 101, 1, numberHit / -100, false, false);
@@ -458,7 +487,8 @@ public class GamePanel extends JPanel implements ActionListener {
             return;
         }
 
-        if (numberHit >= 300) { // hollow red is hit 300 multiples
+        if (numberHit >= 300) { // hollow red is hit 300 multiples HR
+            negitiveLevel += ((numberHit / 300f) / 10f);
             if ((countType("HR") == 0) || (numberHit / 300 == 99)) {
                 changeSquare("SR", -1, -1, numberHit / 300, false, false);
             } else {
@@ -468,7 +498,7 @@ public class GamePanel extends JPanel implements ActionListener {
             return;
         }
 
-        if (numberHit < 0) {  //solid red is hit -1 to -99
+        if (numberHit < 0) {  //solid red is hit -1 to -99 SR
             if ((countType("SR") == 0) || (numberHit * -1 == 99)) {
                 changeSquare("HR", 300, 300, numberHit * -1, false, false);
             } else {
@@ -484,11 +514,19 @@ public class GamePanel extends JPanel implements ActionListener {
                 waitingForNextLevel = false;
                 numbersLeft++;
             }
-
             numbersLeft--;
             // all greens removed on current level
             if (numbersLeft == 0) {
                 level++;
+                if (nextLevel > 0) {
+                    int levelChange = (int) negitiveLevel;
+                    level = level - levelChange;
+                    negitiveLevel = negitiveLevel - levelChange;
+                }
+                if (level <= 0){
+                    running = false;
+                }
+                
                 numbersLeft = level;
                 changeAtXY(getRandomFilteredXY("E"), "G", (int) numbersLeft);
                 waitingForNextLevel = true;
@@ -506,11 +544,27 @@ public class GamePanel extends JPanel implements ActionListener {
             changeSquare("G", tempNumberToDisplay, tempNumberToDisplay, 1, true, true);
         }
 
-        if (numberHit < 0) {
-            score += (displayPerUnit * level * -1);
-        } else if ((numberHit != level) || (level == 1 && gameStarted)) {
-            score += displayPerUnit;
+        if ( (numberHit != level) || (level == 1 && !gameStarted) ) {
+            if (numberHit < 0) {
+                score += (displayPerUnit * level * -1);
+            } else if ((numberHit != level) || (level == 1 && gameStarted)) {
+                score += displayPerUnit;
+            }
         }
+
+        if (score > gameHighScore){
+            gameHighScore = score;
+        }
+
+        if (score !=  lastScore) {
+            if (highScoresArray[0][0] < score) {
+                highScoresArray[0][0] = score;
+                highScoresArray[0][1] = displayLevel;
+            }
+            Arrays.sort(highScoresArray, Comparator.comparingDouble(o -> o[0]));
+            lastScore = score;
+        }
+        displayLevel = level + ((level - numbersLeft) / level);
     }
 
     public void newSpeed() {
@@ -549,7 +603,6 @@ public class GamePanel extends JPanel implements ActionListener {
                     y[0] = y[0] - 1;
                     step = true;
                 } else {
-                    newSpeed();
                     x[0] = x[0] - 1;
                     step = false;
                 }
@@ -568,7 +621,6 @@ public class GamePanel extends JPanel implements ActionListener {
                     y[0] = y[0] - 1;
                     step = true;
                 } else {
-                    newSpeed();
                     x[0] = x[0] + 1;
                     step = false;
                 }
@@ -578,7 +630,6 @@ public class GamePanel extends JPanel implements ActionListener {
                     y[0] = y[0] + 1;
                     step = true;
                 } else {
-                    newSpeed();
                     x[0] = x[0] + 1;
                     step = false;
                 }
@@ -616,7 +667,7 @@ public class GamePanel extends JPanel implements ActionListener {
 
     public void fasterSpeed() {
         if (sneggySpeed > 25) {
-            sneggySpeed /= 1.1;
+            sneggySpeed /= 1.05;
             newSpeed();
         }
     }
