@@ -187,15 +187,16 @@ public class GamePanel extends JPanel implements ActionListener {
         //Create Squared
         if (fill){ //Solid
             g.fillRect(x * UNIT_SIZE + 2, y * UNIT_SIZE + 2, UNIT_SIZE - 4, UNIT_SIZE - 4);
+            g.setColor(Color.black);
         }else { // Hollow
             g.drawRect(x * UNIT_SIZE + 2, y * UNIT_SIZE + 2, UNIT_SIZE - 4, UNIT_SIZE - 4);
         }
-
-        g.setColor(Color.black);
         if (value > 9) { //Larger than 9
             g.drawString(String.valueOf(value), (x * UNIT_SIZE) + 4, (y * UNIT_SIZE) + UNIT_SIZE - 7);
-        } else if (value != 1){ // 2-9
-            g.drawString(String.valueOf(value), (x * UNIT_SIZE) + 9, (y * UNIT_SIZE) + UNIT_SIZE - 7);
+        } else if ((value > 1) || (value == 1 && !gameStarted)){ // 2-9
+            g.setFont(new Font("Terminal", Font.PLAIN, 20));
+            g.drawString(String.valueOf(value), (x * UNIT_SIZE) + 7, (y * UNIT_SIZE) + UNIT_SIZE - 7);
+            g.setFont(new Font("Terminal", Font.PLAIN, 16));
         }
     }
 
@@ -206,16 +207,11 @@ public class GamePanel extends JPanel implements ActionListener {
                 g.setFont(new Font("Terminal", Font.PLAIN, 16));
 
                 int squareValue = getValueAtXY(x, y);
-
-                //next level white square with white number inside of level 1-99
+                //next level white square with number levels 1-99
                 g.setColor(Color.white.brighter());
                 if ((((squareValue == level) && (gameStarted) && level != 1) || ((squareValue == level) && (level == 1) && (!gameStarted)))) {
-                    g.drawRect(x * UNIT_SIZE + 2, y * UNIT_SIZE + 2, UNIT_SIZE - 4, UNIT_SIZE - 4);
-                    if (squareValue > 9) { //Larger than 9
-                        g.drawString(String.valueOf(squareValue), (x * UNIT_SIZE) + 4, (y * UNIT_SIZE) + UNIT_SIZE - 7);
-                    } else { // 2-9
-                        g.drawString(String.valueOf(squareValue), (x * UNIT_SIZE) + 9, (y * UNIT_SIZE) + UNIT_SIZE - 7);
-                    }
+                    g.setColor(Color.white.brighter());
+                    drawRec(g, x, y, squareValue,false);
                 }
 
                 //Yellow Squares
@@ -240,7 +236,6 @@ public class GamePanel extends JPanel implements ActionListener {
                 // Red Squares
                 // Hollow
                 else if (squareValue >= 300) { // more than one hollow red
-                    g.setFont(new Font("Terminal", Font.PLAIN, 16));
                     g.setColor(Color.red.brighter());
                     drawRec(g, x, y,squareValue / 300, false);
                 }
@@ -252,9 +247,8 @@ public class GamePanel extends JPanel implements ActionListener {
                     g.setFont(new Font("Terminal", Font.PLAIN, 16));
                 }
                 // Solid
-                else if (squareValue < -1) {  // solid red
+                else if (squareValue <= -1) {  // solid red
                     g.setColor(Color.red.brighter());
-                    g.setColor(new Color(247, 33, 25));
                     drawRec(g, x, y, squareValue / -1, true);
                 }
 
