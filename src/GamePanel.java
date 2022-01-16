@@ -11,7 +11,7 @@ import java.util.*;
 public class GamePanel extends JPanel implements ActionListener {
     static final int SCREEN_WIDTH = 1200;
     static final int SIDE_FOR_SCORE = 250;
-    static final int BOTTOM_PANEL = 100;
+    static final int BOTTOM_PANEL = 125;
     static final int SCREEN_HEIGHT = 600;
     static int UNIT_SIZE = 25;
     static final int GAME_UNITS = (SCREEN_WIDTH * SCREEN_HEIGHT) / UNIT_SIZE;
@@ -43,11 +43,11 @@ public class GamePanel extends JPanel implements ActionListener {
     boolean waitingForNextLevel; // is the white level number on board - are we waiting to hit it
     double[][] highScoresArray = new double[22][3];
     int gameHighScore;
-    float negitiveLevel;
-    int nextLevel;
+    float skip;
+    int levelChange;
     int attempt = 0;
     int displayPerUnit; // shown number received for hitting positive units
-    double displayDanger; // how much of the board is full
+    double danger; // how much of the board is full
     ArrayList<SneggyBoard> squares = new ArrayList<>(); // list holding board dimensions and what squares are where
 
     GamePanel() {
@@ -67,8 +67,8 @@ public class GamePanel extends JPanel implements ActionListener {
                 squares.add(new SneggyBoard("E", 0, new int[]{i, j})); //E for empty
             }
         }
-        negitiveLevel = 0;
-        nextLevel = 0;
+        skip = 0;
+        levelChange = 0;
         attempt += 1;
         difficulty = 0;
         direction = 'D';
@@ -105,7 +105,6 @@ public class GamePanel extends JPanel implements ActionListener {
         int oldValue = getValueAtXY(xy[0], xy[1]); // find current value
         squares.set((xy[1] * 48) + xy[0], //index instead of x y
                 new SneggyBoard(newType, oldValue + valueChange, new int[]{xy[0], xy[1]})); //replace with new object
-        displayDanger = ((TOTAL_SQUARES - countType("E")) / TOTAL_SQUARES) * 4d * 100d; // update how many squares on board
     }
 
     public int countType(String countType) { //count number of a type
@@ -184,131 +183,93 @@ public class GamePanel extends JPanel implements ActionListener {
         drawBottomPanel(g);
     }
 
+    public void drawRec(Graphics g, int x, int y, int value, boolean fill) {
+        //Create Squared
+        if (fill){ //Solid
+            g.fillRect(x * UNIT_SIZE + 2, y * UNIT_SIZE + 2, UNIT_SIZE - 4, UNIT_SIZE - 4);
+        }else { // Hollow
+            g.drawRect(x * UNIT_SIZE + 2, y * UNIT_SIZE + 2, UNIT_SIZE - 4, UNIT_SIZE - 4);
+        }
+
+        g.setColor(Color.black);
+        if (value > 9) { //Larger than 9
+            g.drawString(String.valueOf(value), (x * UNIT_SIZE) + 4, (y * UNIT_SIZE) + UNIT_SIZE - 7);
+        } else if (value != 1){ // 2-9
+            g.drawString(String.valueOf(value), (x * UNIT_SIZE) + 9, (y * UNIT_SIZE) + UNIT_SIZE - 7);
+        }
+    }
+
     //set numbers
     public void drawNumbers(Graphics g) {
-        for (int i = 0; i < SQUARES_ACROSS; i++) {
-            for (int j = 0; j < SQUARES_DOWN; j++) {
-
-                int squareValue = getValueAtXY(i, j);
-                //next level white square with white number inside of level 1-99
+        for (int x = 0; x < SQUARES_ACROSS; x++) {
+            for (int y = 0; y < SQUARES_DOWN; y++) {
                 g.setFont(new Font("Terminal", Font.PLAIN, 16));
+
+                int squareValue = getValueAtXY(x, y);
+
+                //next level white square with white number inside of level 1-99
+                g.setColor(Color.white.brighter());
                 if ((((squareValue == level) && (gameStarted) && level != 1) || ((squareValue == level) && (level == 1) && (!gameStarted)))) {
-                    g.setColor(Color.white);
-                    //DRAW command draws an unfilled shape
-                    g.drawRect(i * UNIT_SIZE + 2, j * UNIT_SIZE + 2, UNIT_SIZE - 4, UNIT_SIZE - 4);
-                    if (squareValue > 9) {
-                        g.drawString(String.valueOf(squareValue), (i * UNIT_SIZE) + 3, (j * UNIT_SIZE) + UNIT_SIZE - 7);
-                    } else {
-                        g.drawString(String.valueOf(squareValue), (i * UNIT_SIZE) + 8, (j * UNIT_SIZE) + UNIT_SIZE - 7);
+                    g.drawRect(x * UNIT_SIZE + 2, y * UNIT_SIZE + 2, UNIT_SIZE - 4, UNIT_SIZE - 4);
+                    if (squareValue > 9) { //Larger than 9
+                        g.drawString(String.valueOf(squareValue), (x * UNIT_SIZE) + 4, (y * UNIT_SIZE) + UNIT_SIZE - 7);
+                    } else { // 2-9
+                        g.drawString(String.valueOf(squareValue), (x * UNIT_SIZE) + 9, (y * UNIT_SIZE) + UNIT_SIZE - 7);
                     }
-
                 }
 
-                // empty yellow square
+                //Yellow Squares
+                // hollow square
                 else if (squareValue > 100 && squareValue < 200) { //hollow yellow 101-199
-                    g.setColor(Color.yellow);
-                    if (squareValue == 101) {
-                        g.drawRect(i * UNIT_SIZE + 2, j * UNIT_SIZE + 2, UNIT_SIZE - 4, UNIT_SIZE - 4);
-                    } else {
-                        g.drawOval(i * UNIT_SIZE + 2, j * UNIT_SIZE + 2, UNIT_SIZE - 2, UNIT_SIZE - 2);
-                        if (squareValue - 100 > 9) {
-                            g.drawString(String.valueOf(squareValue - 100), (i * UNIT_SIZE) + 4, (j * UNIT_SIZE) + UNIT_SIZE - 7);
-                        } else {
-                            g.drawString(String.valueOf(squareValue - 100), (i * UNIT_SIZE) + 9, (j * UNIT_SIZE) + UNIT_SIZE - 7);
-                        }
-                    }
-                }
-
-                // yellow crossbones
-                else if (((int) sneggyBodyParts - (squareValue / -100) <= 1) && (squareValue <= -100)) { //will kill user
-                    g.setFont(new Font("Terminal", Font.PLAIN, UNIT_SIZE));
-                    g.setColor(Color.yellow); // String.valueOf(sneggySphere(i,j) / -100)
-                    g.drawString("\u2620", (i * UNIT_SIZE), (j * UNIT_SIZE) + UNIT_SIZE); // skull
-                    g.setFont(new Font("Terminal", Font.PLAIN, 16));
-
-                }
-
-                // sold yellow square - no number
-                else if (squareValue == -100) { //solid yellow
-                    g.setColor(Color.yellow);
-                    g.fillRect(i * UNIT_SIZE, j * UNIT_SIZE, UNIT_SIZE, UNIT_SIZE);
-                }
-                // solid yellow circle with number
-                else if (squareValue < -100) { // more than 1 yellow
                     g.setColor(Color.yellow.brighter());
-                    g.fillOval(i * UNIT_SIZE, j * UNIT_SIZE, UNIT_SIZE, UNIT_SIZE);
-                    g.setColor(Color.black);
-                    if ((squareValue / 100) < -9) {
-                        g.drawString(String.valueOf(squareValue / -100), (i * UNIT_SIZE) + 3, (j * UNIT_SIZE) + UNIT_SIZE - 7);
-                    } else {
-                        g.drawString(String.valueOf(squareValue / -100), (i * UNIT_SIZE) + 8, (j * UNIT_SIZE) + UNIT_SIZE - 7);
-                    }
+                    drawRec(g, x, y, squareValue - 100,false);
                 }
-
-                // empty red square
-                else if (squareValue == 300) { // one hollow red
-                    g.setColor(Color.red);
-                    g.drawRect(i * UNIT_SIZE + 2, j * UNIT_SIZE + 2, UNIT_SIZE - 4, UNIT_SIZE - 4);
-                }
-
-                // red circle with number not filled in
-                else if (squareValue > 300) { // more than one hollow red
+                // crossbones
+                else if (((int) sneggyBodyParts - (squareValue / -100) <= 1) && (squareValue <= -100)) { //will kill user
+                    g.setColor(Color.yellow.brighter());
+                    g.setFont(new Font("Terminal", Font.PLAIN, UNIT_SIZE));
+                    g.drawString("\u2620", (x * UNIT_SIZE), (y * UNIT_SIZE) + UNIT_SIZE); // skull
                     g.setFont(new Font("Terminal", Font.PLAIN, 16));
-                    g.setColor(Color.red.brighter().brighter());
-                    g.drawOval(i * UNIT_SIZE + 2, j * UNIT_SIZE + 2, UNIT_SIZE - 2, UNIT_SIZE - 2);
-                    if ((squareValue / 300) > 9) {
-                        g.drawString(String.valueOf(squareValue / 300), (i * UNIT_SIZE) + 4, (j * UNIT_SIZE) + UNIT_SIZE - 7);
-                    } else {
-                        g.drawString(String.valueOf(squareValue / 300), (i * UNIT_SIZE) + 9, (j * UNIT_SIZE) + UNIT_SIZE - 7);
-                    }
+                }
+                // solid
+                else if (squareValue <= -100) { // more than 1 yellow
+                    g.setColor(Color.yellow.brighter());
+                    drawRec(g, x, y, squareValue / -100,true);
                 }
 
-                // red square with crossbones
+                // Red Squares
+                // Hollow
+                else if (squareValue >= 300) { // more than one hollow red
+                    g.setFont(new Font("Terminal", Font.PLAIN, 16));
+                    g.setColor(Color.red.brighter());
+                    drawRec(g, x, y,squareValue / 300, false);
+                }
+                // Crossbones
                 else if ((squareValue <= -1) && (score + (displayPerUnit * level * squareValue) < 0)) {
                     g.setFont(new Font("Terminal", Font.PLAIN, UNIT_SIZE));
-                    g.setColor(Color.red); // String.valueOf(sneggySphere(i,j) * -1)
-                    g.drawString("\u2620", (i * UNIT_SIZE), (j * UNIT_SIZE) + UNIT_SIZE - 4); //skull
+                    g.setColor(Color.red.brighter());
+                    g.drawString("\u2620", (x * UNIT_SIZE), (y * UNIT_SIZE) + UNIT_SIZE - 4); //skull
                     g.setFont(new Font("Terminal", Font.PLAIN, 16));
                 }
-
-                // filled in red circle with number
+                // Solid
                 else if (squareValue < -1) {  // solid red
-
-                    g.setColor(Color.red.brighter().brighter());
-                    g.fillOval(i * UNIT_SIZE, j * UNIT_SIZE, UNIT_SIZE, UNIT_SIZE);
-                    g.setColor(Color.black);
-                    if (squareValue < -9) {
-                        g.drawString(String.valueOf(squareValue * -1), (i * UNIT_SIZE) + 3, (j * UNIT_SIZE) + UNIT_SIZE - 7);
-                    } else {
-                        g.drawString(String.valueOf(squareValue * -1), (i * UNIT_SIZE) + 8, (j * UNIT_SIZE) + UNIT_SIZE - 7);
-                    }
-
-                }
-
-                //solid red square no number
-                else if (squareValue < 0) {  // solid red one
+                    g.setColor(Color.red.brighter());
                     g.setColor(new Color(247, 33, 25));
-                    g.fillRect(i * UNIT_SIZE, j * UNIT_SIZE, UNIT_SIZE, UNIT_SIZE);
+                    drawRec(g, x, y, squareValue / -1, true);
                 }
 
-                //green smiley face circle
+                //Green Squares
+                //Smiley face circle
                 else if (squareValue == 1) { //positive one1
                     g.setColor(Color.green.brighter());
                     g.setFont(new Font("Terminal", Font.PLAIN, UNIT_SIZE)); //
-                    g.drawString("\u263A", (i * UNIT_SIZE), (j * UNIT_SIZE) + UNIT_SIZE - 3);
+                    g.drawString("\u263A", (x * UNIT_SIZE), (y * UNIT_SIZE) + UNIT_SIZE - 3);
                     g.setFont(new Font("Terminal", Font.PLAIN, 16));
-
                 }
-
-                // not filled in green number in a circle
+                // Hollow
                 else if (squareValue > 0) { //more than one green
-                    g.setColor(Color.green);
-                    g.drawOval(i * UNIT_SIZE + 2, j * UNIT_SIZE + 2, UNIT_SIZE - 2, UNIT_SIZE - 2);
-                    if (squareValue > 9) {
-                        g.drawString(String.valueOf(squareValue), (i * UNIT_SIZE) + 4, (j * UNIT_SIZE) + UNIT_SIZE - 7);
-                    } else {
-                        g.drawString(String.valueOf(squareValue), (i * UNIT_SIZE) + 9, (j * UNIT_SIZE) + UNIT_SIZE - 7);
-                    }
+                    g.setColor(Color.green.brighter());
+                    drawRec(g, x, y, squareValue, false);
                 }
             }
         }
@@ -390,13 +351,13 @@ public class GamePanel extends JPanel implements ActionListener {
         g.drawString("Score:" ,  SCREEN_WIDTH + UNIT_SIZE,y + 30);
         g.drawString("Level:" ,  SCREEN_WIDTH + (UNIT_SIZE * 7), y + 30);
             for (int i = highScoresArray.length - 1; i > 0; i--) { //only display 20
-//                if (highScoresArray[i][1] > 0 && highScoresArray[i][0] > 0) {
+                if (highScoresArray[i][1] > 0 && highScoresArray[i][0] > 0) { //don't display 0's
                     y += g.getFontMetrics().getHeight(); //go down one row with each new score
                     g.drawString(withCommas.format(highScoresArray[i][0]), // score
                             SCREEN_WIDTH + UNIT_SIZE, y + 30 ); //display next to each other
                     g.drawString(decimal.format(highScoresArray[i][1]), // level
                             SCREEN_WIDTH + (UNIT_SIZE * 7), y + 30);
-//                }
+                }
             }
     }
 
@@ -411,46 +372,63 @@ public class GamePanel extends JPanel implements ActionListener {
         g.setColor(Color.magenta);
         g.setFont(new Font("Terminal", Font.PLAIN, 20));
 
-        // Game Name
-        g.drawString("Introducing \"Sneggy\" In:", + 75, SCREEN_HEIGHT + (BOTTOM_PANEL / 2) - 15);
-        g.setFont(new Font("Terminal", Font.PLAIN, (int) (UNIT_SIZE * 1.5)));
-        g.drawString("StrataSnake \uD83D\uDC0D", + 50, SCREEN_HEIGHT + (BOTTOM_PANEL / 2) + 25);
-
         int displaySpeed = (int) ((125 / sneggySpeed) * 100);
         displayPerUnit = (int) ((difficulty > 100) ? (int) (scoreMultiplierFloat * (difficulty / 100f)) * (float) (125 / sneggySpeed) : (int) scoreMultiplierFloat * (float) (125 / sneggySpeed));
-        displayLevel = level + ((level - numbersLeft) / level);
+        int nextLevel = 0;
+        if (waitingForNextLevel) {
+            displayLevel = level + ((level - numbersLeft) / level) - 1;
+        } else {
+            displayLevel = level + ((level - numbersLeft) / level);
+            nextLevel++;
+        }
+        danger = (((TOTAL_SQUARES - (countType("E"))) / TOTAL_SQUARES) * 1.5d); // update how many squares on board
 
-        //sneggySpeed / Per Unit /  Score
+        // Game Name
+        g.drawString("Introducing \"Sneggy\" In:", 75, SCREEN_HEIGHT + (BOTTOM_PANEL / 2) - 15);
+        g.setFont(new Font("Terminal", Font.PLAIN, (int) (UNIT_SIZE * 1.5)));
+        g.drawString("StrataSnake \uD83D\uDC0D", 50, SCREEN_HEIGHT + (BOTTOM_PANEL / 2) + 25);
+
         g.setFont(new Font("Terminal", Font.PLAIN, 20));
+        g.setColor(Color.white);
+        g.drawString("Level: " + decimal.format(displayLevel) + "   Next: " + decimal.format(level + levelChange + nextLevel) +
+                        "   Skip: " + decimal.format(skip * 100) + "%", 400, SCREEN_HEIGHT + 50);
+
         g.setColor(Color.green);
-        g.drawString("Level: " + decimal.format(displayLevel) +
-                "   Danger: " + decimal.format(displayDanger) + "%" +
-                "   Speed: " + withCommas.format(displaySpeed) + "%",
-                (SCREEN_WIDTH / 3) + 40, SCREEN_HEIGHT + (BOTTOM_PANEL / 2) - 15);
-
-        g.drawString("   Per Green Unit: " + withCommas.format(displayPerUnit) +
-                        "   Per Red Unit: " + withCommas.format(displayPerUnit * level * -1),
-                (SCREEN_WIDTH / 3) + 20, SCREEN_HEIGHT
-                        + (BOTTOM_PANEL / 2) + 10);
-
         g.drawString("Length: " + decimal.format(sneggyBodyParts - 1) +
-                "   Regress: " + decimal.format(negitiveLevel),
-                (SCREEN_WIDTH / 3) + 125, SCREEN_HEIGHT + (BOTTOM_PANEL / 2) + 35);
+                        "   Speed: " + withCommas.format(displaySpeed) + "%",  400, SCREEN_HEIGHT + 75);
 
+        g.setColor(Color.white);
+        g.drawString("Game " + attempt +": ",750, SCREEN_HEIGHT + 35);
         g.setColor(Color.magenta);
-        g.drawString("Current Score: " + withCommas.format(score), SCREEN_WIDTH - 250, SCREEN_HEIGHT
-                + (BOTTOM_PANEL / 2) - 10);
-        g.drawString("Game " + attempt + " High Score: " +
-                withCommas.format(score), SCREEN_WIDTH - 250, SCREEN_HEIGHT + (BOTTOM_PANEL / 2) + 20);
+        g.drawString("Score: " + withCommas.format(score), 750, SCREEN_HEIGHT + 60);
+        g.drawString("High Score: " + withCommas.format(gameHighScore), 750, SCREEN_HEIGHT + 85);
 
-            new Comparator<String[]>() {
-                public int compare(String[] first, String[] second) {
-                    return first[1].compareTo(second[1]);
-                }
-            };
-        g.setFont(new Font("Terminal", Font.PLAIN, 30));
+        g.setColor(Color.white);
+        g.drawString("Score:" , 975, SCREEN_HEIGHT + 35);
         g.setColor(Color.green);
+        g.drawString("\u25A1 +" + withCommas.format(displayPerUnit), 975, SCREEN_HEIGHT + 60);
+        g.setColor(Color.red);
+        g.drawString("\u25A0 " + withCommas.format(displayPerUnit * level * -1), 975, SCREEN_HEIGHT + 85);
+        g.drawString("\u2620 Death" , 975, SCREEN_HEIGHT + 110);
 
+        g.setColor(Color.white);
+        g.drawString("Length:", 1150, SCREEN_HEIGHT + 35);
+        g.setColor(Color.yellow);
+        g.drawString("\u25A1  +0.1" , 1150, SCREEN_HEIGHT + 60);
+        g.drawString("\u25A0  -1" , 1150, SCREEN_HEIGHT + 85);
+        g.drawString("\u2620 Death" , 1150, SCREEN_HEIGHT + 110);
+
+        g.setColor(Color.white);
+        g.drawString("Level:", 1325, SCREEN_HEIGHT + 35);
+        g.setColor(Color.green);
+        if (displayLevel == 0) {
+            g.drawString("\u263A + 0%", 1325, SCREEN_HEIGHT + 60);
+        } else {
+            g.drawString("\u263A +" + withCommas.format((1 / displayLevel) * 100) + "%", 1325, SCREEN_HEIGHT + 60);
+        }
+        g.setColor(Color.red);
+        g.drawString("\u25A1 +" + withCommas.format(danger * 100)+ "%" , 1325, SCREEN_HEIGHT + 85);
+        
     }
 
     public void newNumbers(int numberHit) {
@@ -488,7 +466,13 @@ public class GamePanel extends JPanel implements ActionListener {
         }
 
         if (numberHit >= 300) { // hollow red is hit 300 multiples HR
-            negitiveLevel += ((numberHit / 300f) / 10f);
+            skip += (danger * (numberHit / 300f));
+            System.out.print("NL:" + skip);
+            System.out.println(" LC: " + levelChange);
+            if (skip >= 1) {
+                levelChange += (int) skip;
+                skip -= (int) skip;
+            }
             if ((countType("HR") == 0) || (numberHit / 300 == 99)) {
                 changeSquare("SR", -1, -1, numberHit / 300, false, false);
             } else {
@@ -518,15 +502,14 @@ public class GamePanel extends JPanel implements ActionListener {
             // all greens removed on current level
             if (numbersLeft == 0) {
                 level++;
-                if (nextLevel > 0) {
-                    int levelChange = (int) negitiveLevel;
-                    level = level - levelChange;
-                    negitiveLevel = negitiveLevel - levelChange;
+                if (levelChange > 0) {
+                    level = level + levelChange;
+                    levelChange = 0;
                 }
                 if (level <= 0){
                     running = false;
                 }
-                
+
                 numbersLeft = level;
                 changeAtXY(getRandomFilteredXY("E"), "G", (int) numbersLeft);
                 waitingForNextLevel = true;
