@@ -72,6 +72,7 @@ public class GamePanel extends JPanel implements ActionListener {
         }
         highScoresArray = HighScoreReader.ReadHighScore();
         Arrays.sort(highScoresArray, Comparator.comparingInt(HighScoresList::getScore));
+        text = highScoresArray[26].getInitials();
         skip = 0;
         levelChange = 0;
         attempt += 1;
@@ -181,8 +182,8 @@ public class GamePanel extends JPanel implements ActionListener {
             gameOver(g, "Sneggy Died!", Color.red.brighter()); //display game message
         }
         drawGrid(g);
-        drawHighScore(g);
         drawBottomPanel(g);
+        drawHighScore(g);
         nameField(g);
     }
 
@@ -235,7 +236,7 @@ public class GamePanel extends JPanel implements ActionListener {
                     drawRec(g, x, y, squareValue - 100, false);
                 }
                 // crossbones
-                else if (((int) sneggyBodyParts - (squareValue / -100) <= 1) && (squareValue <= -100)) { //will kill user
+                else if (((int) sneggyBodyParts - ((squareValue / -100f) * ((displayPerUnit * level)) / 1000f) <= 1) && (squareValue <= -100)) { //will kill user
                     g.setColor(Color.yellow.brighter());
                     g.setFont(new Font("Terminal", Font.BOLD, UNIT_SIZE));
                     g.drawString("☠", (x * UNIT_SIZE), (y * UNIT_SIZE) + UNIT_SIZE - 2); // skull
@@ -350,10 +351,10 @@ public class GamePanel extends JPanel implements ActionListener {
             } else {
                 g.setColor(new Color(50, 0, 50));
             }
-            g.fillRect(SCREEN_WIDTH, (20 * i) + 61, SIDE_FOR_SCORE, 20);
+            g.fillRect(SCREEN_WIDTH, (24 * i) + 61, SIDE_FOR_SCORE, 20);
         }
         g.setColor(Color.white);
-        g.setFont(new Font("Terminal", Font.PLAIN, 15));
+        g.setFont(new Font("Terminal", Font.PLAIN, 18));
         int y = UNIT_SIZE;
         g.drawString("High Score:", SCREEN_WIDTH + 25, y);
 
@@ -382,21 +383,18 @@ public class GamePanel extends JPanel implements ActionListener {
 
         // formatting
 
-        int displaySpeed = (int) ((125 / sneggySpeed) * 100);
         displayPerUnit = (int) ((difficulty > 100) ? (int) (scoreMultiplierFloat * (difficulty / 100f)) * (float) (125 / sneggySpeed) : (int) scoreMultiplierFloat * (float) (125 / sneggySpeed));
-        int nextLevel = 0;
         displayLevel = level + ((level - numbersLeft) / level);
         int notYetNextLevel = 0;
         if (waitingForNextLevel) {
             notYetNextLevel = -1;
-        } else {
-            nextLevel++;
         }
         danger = (((TOTAL_SQUARES - (countType("E"))) / TOTAL_SQUARES) / 2d); // update how many squares on board
 
         // Game Name
         g.setColor(Color.magenta.brighter());
-        g.drawString("Introducing \"Sneggy\" In:", 75, SCREEN_HEIGHT + (BOTTOM_PANEL / 2) - 15);
+        g.setFont(new Font("Terminal", Font.PLAIN, 22));
+        g.drawString("Introducing \"Sneggy\" In:", 60, SCREEN_HEIGHT + (BOTTOM_PANEL / 2) - 15);
         g.setFont(new Font("Terminal", Font.PLAIN, (int) (UNIT_SIZE * 1.5)));
         g.drawString("StrataSnake \uD83D\uDC0D", 50, SCREEN_HEIGHT + (BOTTOM_PANEL / 2) + 25);
 
@@ -404,44 +402,30 @@ public class GamePanel extends JPanel implements ActionListener {
 
         g.setFont(new Font("Terminal", Font.PLAIN, 20));
         g.setColor(Color.white);
-        g.drawString("Stats:", 400, SCREEN_HEIGHT + 35);
+        g.drawString("Score: " + withCommas.format(score), 450, SCREEN_HEIGHT + 35);
         g.setColor(Color.green);
-        g.drawString("Level: " + decimal.format(displayLevel + notYetNextLevel) + "   Next: " + decimal.format(level + levelChange + nextLevel) +
-                "   Skip: " + withCommas.format(skip * 100) + "%", 400, SCREEN_HEIGHT + 60);
-        g.drawString("Length: " + decimal.format(sneggyBodyParts - 1) +
-                "   Speed: " + withCommas.format(displaySpeed) + "%", 400, SCREEN_HEIGHT + 85);
-
-        g.setColor(Color.white);
-        g.drawString("Game " + attempt + " Scores: ", 750, SCREEN_HEIGHT + 35);
-        g.setColor(Color.magenta);
-        g.drawString("Current: " + withCommas.format(score), 750, SCREEN_HEIGHT + 60);
-        g.drawString("Best: " + withCommas.format(gameHighScore), 750, SCREEN_HEIGHT + 85);
-
-        g.setColor(Color.white);
-        g.drawString("Score:", 975, SCREEN_HEIGHT + 35);
-        g.setColor(Color.green);
-        g.drawString("\u25A1 +" + withCommas.format(displayPerUnit), 975, SCREEN_HEIGHT + 60);
+        g.drawString("\u263A \u25A1 +" + withCommas.format(displayPerUnit), 450, SCREEN_HEIGHT + 60);
         g.setColor(Color.red);
-        g.drawString("\u25A0 " + withCommas.format(displayPerUnit * level * -1), 975, SCREEN_HEIGHT + 85);
-        g.drawString("\u2620 Death", 975, SCREEN_HEIGHT + 110);
+        g.drawString("\u25A0 " + withCommas.format(displayPerUnit * level * -1), 450, SCREEN_HEIGHT + 85);
+        g.drawString("\u2620 Death", 450, SCREEN_HEIGHT + 110);
 
         g.setColor(Color.white);
-        g.drawString("Length:", 1150, SCREEN_HEIGHT + 35);
+        g.drawString("Length: " + decimal.format(sneggyBodyParts - 1) , 700, SCREEN_HEIGHT + 35);
         g.setColor(Color.yellow);
-        g.drawString("\u25A1  + 1/20", 1150, SCREEN_HEIGHT + 60);
-        g.drawString("\u25A0  - 1", 1150, SCREEN_HEIGHT + 85);
-        g.drawString("\u2620 Death", 1150, SCREEN_HEIGHT + 110);
+        g.drawString("\u25A1  + "+ decimal.format(displayPerUnit / 1000f), 700, SCREEN_HEIGHT + 60);
+        g.drawString("\u25A0  - "+ decimal.format(((displayPerUnit * level) / 1000f)), 700, SCREEN_HEIGHT + 85);
+        g.drawString("\u2620 Death", 700, SCREEN_HEIGHT + 110);
 
         g.setColor(Color.white);
-        g.drawString("Level:", 1325, SCREEN_HEIGHT + 35);
+        g.drawString("Level: " + decimal.format(level ) , 950, SCREEN_HEIGHT + 35);
         g.setColor(Color.green);
         if (waitingForNextLevel) {
-            g.drawString("\u263A + 0%", 1325, SCREEN_HEIGHT + 60);
+            g.drawString("\u263A + 0%", 950, SCREEN_HEIGHT + 60);
         } else {
-            g.drawString("\u263A + " + withCommas.format((1 / (level + notYetNextLevel)) * 100) + "%", 1325, SCREEN_HEIGHT + 60);
+            g.drawString("\u263A + " + decimal.format((1 / (level + notYetNextLevel)) * 100) + "%", 950, SCREEN_HEIGHT + 60);
         }
         g.setColor(Color.red);
-        g.drawString("\u25A1 + " + withCommas.format(danger * 100) + "%", 1325, SCREEN_HEIGHT + 85);
+        g.drawString("\u25A1 + " + decimal.format(danger * 100) + "%", 950, SCREEN_HEIGHT + 85);
 
     }
 
@@ -457,31 +441,30 @@ public class GamePanel extends JPanel implements ActionListener {
         }
 
         if (numberHit > 100 && numberHit < 200) { // hollow yellow is hit HY 101-199
-            sneggyBodyParts += ((numberHit - 100f) / 20f);
+            sneggyBodyParts += displayPerUnit / 1000f;
             if ((countType("HY") == 0) || (numberHit - 100 == 99)) {
                 changeSquare("SY", -100, -100, numberHit - 100, false, false);
             } else {
-                changeSquare("HY", 101, 1, (numberHit - 100) + 5, false, true);
-                changeSquare("SY", -100, -100, 5, false, true);
+                changeSquare("HY", 101, 1, (numberHit - 100) + 1, false, true);
+                changeSquare("SY", -100, -100, 1, false, true);
             }
             return;
         }
 
         if (numberHit / -100 > 0) { //solid yellow is hit -100 multiples SY
-            sneggyBodyParts -= (numberHit / -100f); // loss of body parts based on speed.
+            sneggyBodyParts -= ((displayPerUnit * level) / 1000f) * (numberHit / -100f); //loss of body parts based on speed.
             if ((countType("SY") == 0) || (numberHit / -100 == 99)) {
                 changeSquare("HY", 101, 1, numberHit / -100, false, false);
             } else {
-                changeSquare("HY", 101, 1, 5, false, true);
-                changeSquare("SY", -100, -100, (numberHit / -100) + 5, false, true);
+                changeSquare("HY", 101, 1, 1, false, true);
+                changeSquare("SY", -100, -100, 2, true, true);
+                changeSquare("SY", -100, -100, (numberHit / -100), false, true);
             }
             return;
         }
 
         if (numberHit >= 300) { // hollow red is hit 300 multiples HR
             skip += (danger * (numberHit / 300f));
-            System.out.print("NL:" + skip);
-            System.out.println(" LC: " + levelChange);
             if (skip >= 1) {
                 levelChange += (int) skip;
                 skip -= (int) skip;
@@ -500,7 +483,8 @@ public class GamePanel extends JPanel implements ActionListener {
                 changeSquare("HR", 300, 300, numberHit * -1, false, false);
             } else {
                 changeSquare("HR", 300, 300, 1, false, true);
-                changeSquare("SR", -1, -1, (numberHit * -1) + 1, false, true);
+                changeSquare("SR", -1, -1, 2, true, true);
+                changeSquare("SR", -1, -1, (numberHit * -1), false, true);
             }
         }
 

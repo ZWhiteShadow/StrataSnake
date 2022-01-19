@@ -4,7 +4,6 @@ import java.io.FileNotFoundException;  // Import this class to handle errors
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
 import java.util.Scanner; // Import the Scanner class to read text files
 
 public class HighScoreReader {
@@ -26,16 +25,15 @@ public class HighScoreReader {
             Scanner myReader = new Scanner(myObj);
             int index = 0;
             while (myReader.hasNextLine()) {
-                index++;
                 String data = myReader.nextLine();
                 String[] parts = data.split(",");
                 returnArray[index].setInitials(String.valueOf(parts[0]));
                 returnArray[index].setScore(Integer.parseInt(parts[1]));
                 returnArray[index].setLevel(Float.parseFloat(parts[2]));
+                index++;
             }
             return returnArray;
         } catch (FileNotFoundException e) {
-            System.out.println("An error occurred.");
             e.printStackTrace();
             return returnArray;
         }
